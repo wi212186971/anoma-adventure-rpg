@@ -290,7 +290,7 @@
                 你的导师告诉你，只有通过不断的冒险和战斗，才能提升你的意图操控能力，最终成为真正的意图大师。
             </div>
             <div class="character-image">
-                🧙‍♂️
+                <img src="wizard.png" alt="意图法师" style="max-width: 150px; border-radius: 10px; border: 3px solid #ffd700;">
             </div>
         </div>
         
@@ -359,12 +359,168 @@
                 maxExp: 100,
                 gold: 100,
                 x: 10,
-                y: 10
+                y: 10,
+                inventory: [
+                    { id: 'hp_potion', name: '生命药水', type: 'consumable', effect: 'heal', value: 50, count: 2 },
+                    { id: 'mp_potion', name: '魔法药水', type: 'consumable', effect: 'mana', value: 30, count: 1 }
+                ],
+                equipment: {
+                    weapon: { id: 'starter_staff', name: '新手法杖', attack: 10 },
+                    armor: { id: 'cloth_robe', name: '布制长袍', defense: 5 }
+                },
+                companions: []
             },
             currentScene: 'intro',
             gameMode: 'story',
             enemy: null,
-            gameMap: null
+            gameMap: null,
+            shopItems: [
+                { id: 'hp_potion', name: '生命药水', type: 'consumable', effect: 'heal', value: 50, price: 20, description: '恢复50点生命值' },
+                { id: 'mp_potion', name: '魔法药水', type: 'consumable', effect: 'mana', value: 30, price: 30, description: '恢复30点魔法值' },
+                { id: 'iron_sword', name: '铁剑', type: 'weapon', attack: 20, price: 100, description: '攻击力+20的铁制武器' },
+                { id: 'leather_armor', name: '皮甲', type: 'armor', defense: 10, price: 80, description: '防御力+10的皮制护甲' },
+                { id: 'magic_ring', name: '魔法戒指', type: 'accessory', mp: 20, price: 150, description: '增加20点最大魔法值' },
+                { id: 'strength_potion', name: '力量药水', type: 'consumable', effect: 'buff', value: 10, price: 50, description: '临时增加10点攻击力' }
+            ],
+            // 客栈系统
+            inn: {
+                restCost: 20,
+                isOpen: false
+            },
+            // NPC系统
+            npcs: [
+                {
+                    id: 'merchant_bob',
+                    name: '商人鲍勃',
+                    location: 'town',
+                    dialogue: [
+                        '欢迎来到我们的小镇！这里的贸易很繁荣。',
+                        '听说最近森林里出现了一些奇怪的意图波动...',
+                        '如果你需要好装备，记得去商店看看！',
+                        '意图法师们总是很忙碌，但记得要好好休息哦。'
+                    ]
+                },
+                {
+                    id: 'innkeeper_mary',
+                    name: '客栈老板娘玛丽',
+                    location: 'town',
+                    dialogue: [
+                        '累了吗？来我的客栈休息一下吧！',
+                        '只要20金币，就能让你完全恢复精神！',
+                        '我这里的床铺是全镇最舒服的！',
+                        '冒险者们都说在这里睡一觉比喝药水还管用呢。'
+                    ]
+                },
+                {
+                    id: 'old_sage',
+                    name: '智者老人',
+                    location: 'village',
+                    dialogue: [
+                        '年轻的意图法师，意图的力量需要智慧来引导。',
+                        '记住，真正的力量来自于理解，而不是征服。',
+                        'Anoma世界的秘密比你想象的更加深奥...',
+                        '每一次战斗都是学习的机会，珍惜它们。'
+                    ]
+                },
+                {
+                    id: 'village_guard',
+                    name: '村庄守卫',
+                    location: 'village',
+                    dialogue: [
+                        '最近森林里的怪物变得更加活跃了。',
+                        '如果你要去冒险，一定要小心！',
+                        '我听说有些意图法师能够收集伙伴一起战斗。',
+                        '村长对你的期望很高，不要让他失望。'
+                    ]
+                }
+            ],
+            currentNpc: null,
+            availableCompanions: [
+                { 
+                    id: 'shrimp_companion', 
+                    name: '虾虾伙伴', 
+                    sprite: '🦐',
+                    image: 'monster7.png',
+                    hp: 60, 
+                    maxHp: 60, 
+                    attack: 12, 
+                    skill: '意图连接', 
+                    description: '来自Anoma世界的神秘生物，能够帮助理解意图流动',
+                    unlocked: false,
+                    location: 'forest',
+                    unlockLevel: 1
+                },
+                { 
+                    id: 'crystal_guardian', 
+                    name: '水晶守护者', 
+                    sprite: '🔴',
+                    image: 'monster1.png',
+                    hp: 80, 
+                    maxHp: 80, 
+                    attack: 15, 
+                    skill: '水晶护盾', 
+                    description: '强大的守护者，拥有坚不可摧的防御能力',
+                    unlocked: false,
+                    location: 'cave',
+                    unlockLevel: 3
+                },
+                { 
+                    id: 'sky_watcher', 
+                    name: '天空观察者', 
+                    sprite: '👁️',
+                    image: 'monster2.png',
+                    hp: 50, 
+                    maxHp: 50, 
+                    attack: 18, 
+                    skill: '洞察之眼', 
+                    description: '能够看透一切的神秘存在，提供战略指导',
+                    unlocked: false,
+                    location: 'mountain',
+                    unlockLevel: 5
+                },
+                { 
+                    id: 'block_builder', 
+                    name: '方块建造者', 
+                    sprite: '🟥',
+                    image: 'monster3.png',
+                    hp: 70, 
+                    maxHp: 70, 
+                    attack: 14, 
+                    skill: '构造术', 
+                    description: '擅长建造和重组的工程大师',
+                    unlocked: false,
+                    location: 'town',
+                    unlockLevel: 7
+                },
+                { 
+                    id: 'void_walker', 
+                    name: '虚空行者', 
+                    sprite: '🌀',
+                    image: 'monster4.png',
+                    hp: 90, 
+                    maxHp: 90, 
+                    attack: 20, 
+                    skill: '虚空穿越', 
+                    description: '来自虚空的强大存在，掌控空间的力量',
+                    unlocked: false,
+                    location: 'cave',
+                    unlockLevel: 10
+                },
+                { 
+                    id: 'star_forge', 
+                    name: '星辰锻造者', 
+                    sprite: '⭐',
+                    image: 'monster6.png',
+                    hp: 100, 
+                    maxHp: 100, 
+                    attack: 25, 
+                    skill: '星辰之力', 
+                    description: '传说中的锻造大师，能够创造星辰级别的装备',
+                    unlocked: false,
+                    location: 'mountain',
+                    unlockLevel: 15
+                }
+            ]
         };
         
         // 地图数据
@@ -583,18 +739,56 @@
                         updatePlayerStats();
                     }
                     break;
-                    
                 case 'village_center':
-                    document.getElementById('story-title').textContent = '新手村中心';
-                    document.getElementById('story-text').textContent = '你回到了熟悉的村庄中心。这里总是那么宁静祥和，让人感到安心。';
+                    document.getElementById('story-title').textContent = '村庄中心';
+                    document.getElementById('story-text').textContent = '你回到了熟悉的村庄中心。这里有各种设施和友善的村民，你可以在这里休息、补给或与人交谈。';
                     updateChoices([
-                        { text: '前往村长家接受第一个任务', action: 'village_chief' },
-                        { text: '探索村庄周围的森林', action: 'forest' },
-                        { text: '查看个人状态和装备', action: 'status' },
-                        { text: '前往商店购买物品', action: 'shop' },
-                        { text: '打开世界地图', action: 'map' }
+                        { text: '🏠 拜访村长', action: 'village_chief' },
+                        { text: '🛒 前往商店', action: 'shop' },
+                        { text: '🏨 前往客栈休息', action: 'inn' },
+                        { text: '👥 与村民交谈', action: 'talk_npc' },
+                        { text: '📊 查看个人状态', action: 'status' },
+                        { text: '🗺️ 打开世界地图', action: 'map' },
+                        { text: '🌲 探索森林', action: 'forest' }
                     ]);
                     addLog('🏠 返回到了村庄中心');
+                    break;
+                    
+                case 'inn':
+                    showInn();
+                    break;
+                    
+                case 'talk_npc':
+                    showNpcList();
+                    break;
+                    
+                case 'rest_at_inn':
+                    restAtInn();
+                    break;
+                    
+                case 'shop_buy':
+                    showShopBuy();
+                    break;
+                    
+                case 'shop_sell':
+                    showShopSell();
+                    break;
+                    
+                default:
+                    // 处理动态生成的动作
+                    if (action.startsWith('talk_')) {
+                        const npcId = action.replace('talk_', '');
+                        talkToNpc(npcId);
+                    } else if (action.startsWith('buy_')) {
+                        const itemIndex = parseInt(action.replace('buy_', ''));
+                        buyItem(itemIndex);
+                    } else if (action.startsWith('sell_')) {
+                        const itemIndex = parseInt(action.replace('sell_', ''));
+                        sellItem(itemIndex);
+                    } else if (action.startsWith('recruit_')) {
+                        const companionId = action.replace('recruit_', '');
+                        recruitCompanion(companionId);
+                    }
                     break;
             }
         }
@@ -726,6 +920,11 @@
                     }
                 }
                 
+                // 检查伙伴遭遇（优先级高于普通遭遇）
+                if (checkCompanionEncounter(targetTile.type)) {
+                    return; // 如果遇到伙伴，不进行其他检查
+                }
+                
                 // 踩雷式遇敌机制
                 const encounterChance = getEncounterChance(targetTile.type);
                 if (Math.random() < encounterChance) {
@@ -797,6 +996,78 @@
                     showShop();
                     addLog(`🏪 进入了城镇商店`);
                     break;
+            }
+        }
+        
+        // 检查伙伴遭遇
+        function checkCompanionEncounter(terrainType) {
+            const availableCompanions = gameState.availableCompanions.filter(
+                companion => !companion.unlocked && 
+                           companion.location === terrainType &&
+                           gameState.player.level >= companion.unlockLevel
+            );
+            
+            if (availableCompanions.length > 0 && Math.random() < 0.15) { // 15%概率遇到伙伴
+                const companion = availableCompanions[Math.floor(Math.random() * availableCompanions.length)];
+                showCompanionEncounter(companion);
+                return true;
+            }
+            return false;
+        }
+        
+        // 显示伙伴遭遇
+        function showCompanionEncounter(companion) {
+            closeMap();
+            document.getElementById('story-title').textContent = '意外遭遇';
+            document.getElementById('story-text').textContent = `
+                在你的冒险途中，你遇到了一个神秘的生物——${companion.name} ${companion.sprite}！
+                
+                ${companion.description}
+                
+                它似乎对你的意图能量很感兴趣，想要加入你的冒险队伍。你愿意接受这个新伙伴吗？
+            `;
+            
+            updateChoices([
+                { text: `✅ 接受${companion.name}加入队伍`, action: `recruit_${companion.id}` },
+                { text: '🤔 先观察一下', action: 'observe_companion' },
+                { text: '❌ 礼貌地拒绝', action: 'decline_companion' }
+            ]);
+            
+            // 临时存储当前遭遇的伙伴
+            gameState.currentCompanionEncounter = companion;
+            addLog(`🌟 遇到了潜在的新伙伴：${companion.name}！`);
+        }
+        
+        // 招募伙伴
+        function recruitCompanion(companionId) {
+            const companion = gameState.availableCompanions.find(c => c.id === companionId);
+            if (companion) {
+                companion.unlocked = true;
+                gameState.player.companions.push({
+                    ...companion,
+                    hp: companion.maxHp
+                });
+                
+                document.getElementById('story-title').textContent = '新伙伴加入！';
+                document.getElementById('story-text').textContent = `
+                    🎉 ${companion.name}决定加入你的冒险队伍！
+                    
+                    ${companion.name}的能力：
+                    • 生命值：${companion.maxHp}
+                    • 攻击力：${companion.attack}
+                    • 特殊技能：${companion.skill}
+                    
+                    有了新伙伴的帮助，你的冒险将变得更加精彩！
+                `;
+                
+                updateChoices([
+                    { text: '🏠 返回村庄', action: 'village_center' },
+                    { text: '🗺️ 继续探索', action: 'map' },
+                    { text: '👥 查看队伍状态', action: 'view_party' }
+                ]);
+                
+                addLog(`🎉 ${companion.name}加入了你的队伍！`);
+                gameState.currentCompanionEncounter = null;
             }
         }
         
@@ -954,8 +1225,202 @@
         window.onload = function() {
             initGame();
         };
-
-        // 键盘事件监听
+        
+        // 客栈系统
+        function showInn() {
+            document.getElementById('story-title').textContent = '🏨 温馨客栈';
+            const innkeeper = gameState.npcs.find(npc => npc.id === 'innkeeper_mary');
+            const randomDialogue = innkeeper.dialogue[Math.floor(Math.random() * innkeeper.dialogue.length)];
+            
+            document.getElementById('story-text').textContent = `
+                客栈老板娘玛丽热情地迎接了你。
+                
+                "${randomDialogue}"
+                
+                休息费用：${gameState.inn.restCost} 金币
+                当前生命值：${gameState.player.hp}/${gameState.player.maxHp}
+                当前魔法值：${gameState.player.mp}/${gameState.player.maxMp}
+                当前金币：${gameState.player.gold}
+            `;
+            
+            const choices = [];
+            
+            if (gameState.player.gold >= gameState.inn.restCost && 
+                (gameState.player.hp < gameState.player.maxHp || gameState.player.mp < gameState.player.maxMp)) {
+                choices.push({ text: `💰 支付${gameState.inn.restCost}金币休息`, action: 'rest_at_inn' });
+            }
+            
+            choices.push(
+                { text: '💬 与老板娘聊天', action: 'talk_innkeeper_mary' },
+                { text: '🏠 返回村庄中心', action: 'village_center' }
+            );
+            
+            updateChoices(choices);
+        }
+        
+        function restAtInn() {
+            if (gameState.player.gold >= gameState.inn.restCost) {
+                gameState.player.gold -= gameState.inn.restCost;
+                gameState.player.hp = gameState.player.maxHp;
+                gameState.player.mp = gameState.player.maxMp;
+                
+                document.getElementById('story-title').textContent = '😴 舒适的休息';
+                document.getElementById('story-text').textContent = `
+                    你在客栈的舒适床铺上美美地睡了一觉。
+                    
+                    温暖的被褥和安静的环境让你完全恢复了精神。
+                    当你醒来时，感觉精力充沛，准备迎接新的冒险！
+                    
+                    ✅ 生命值和魔法值已完全恢复！
+                    💰 支付了${gameState.inn.restCost}金币
+                `;
+                
+                updateChoices([
+                    { text: '🌅 开始新的一天', action: 'village_center' },
+                    { text: '📊 查看状态', action: 'status' }
+                ]);
+                
+                addLog(`😴 在客栈休息，完全恢复了体力和魔法`);
+                addLog(`💰 支付了${gameState.inn.restCost}金币`);
+                updatePlayerStats();
+            }
+        }
+        
+        // NPC系统
+        function showNpcList() {
+            document.getElementById('story-title').textContent = '👥 村民交谈';
+            document.getElementById('story-text').textContent = `
+                村庄里有几位友善的村民，你可以选择与他们交谈：
+                
+                每个人都有自己的故事和见解，也许能给你一些有用的信息或建议。
+            `;
+            
+            const villageNpcs = gameState.npcs.filter(npc => npc.location === 'village');
+            const choices = villageNpcs.map(npc => ({
+                text: `💬 与${npc.name}交谈`,
+                action: `talk_${npc.id}`
+            }));
+            
+            choices.push({ text: '🏠 返回村庄中心', action: 'village_center' });
+            updateChoices(choices);
+        }
+        
+        function talkToNpc(npcId) {
+            const npc = gameState.npcs.find(n => n.id === npcId);
+            if (npc) {
+                const randomDialogue = npc.dialogue[Math.floor(Math.random() * npc.dialogue.length)];
+                
+                document.getElementById('story-title').textContent = `💬 与${npc.name}的对话`;
+                document.getElementById('story-text').textContent = `
+                    ${npc.name}友善地看着你。
+                    
+                    "${randomDialogue}"
+                    
+                    ${npc.name}的话语中透露着智慧和经验，也许对你的冒险有所帮助。
+                `;
+                
+                updateChoices([
+                    { text: '🗣️ 继续交谈', action: `talk_${npcId}` },
+                    { text: '👥 与其他村民交谈', action: 'talk_npc' },
+                    { text: '🏠 返回村庄中心', action: 'village_center' }
+                ]);
+                
+                addLog(`💬 与${npc.name}进行了愉快的交谈`);
+            }
+        }
+        
+        // 更新商店系统，添加卖出功能
+        function showShop() {
+            document.getElementById('story-title').textContent = '🛒 村庄商店';
+            document.getElementById('story-text').textContent = `
+                商店老板热情地招呼你："欢迎光临！我这里有各种冒险用品。"
+                
+                你的金币：${gameState.player.gold}
+                
+                你可以购买装备，也可以出售不需要的物品。
+            `;
+            
+            updateChoices([
+                { text: '🛍️ 购买物品', action: 'shop_buy' },
+                { text: '💰 出售物品', action: 'shop_sell' },
+                { text: '🏠 返回村庄中心', action: 'village_center' }
+            ]);
+        }
+        
+        function showShopBuy() {
+            document.getElementById('story-title').textContent = '🛍️ 购买物品';
+            let shopText = `选择要购买的物品：\n\n`;
+            
+            gameState.shopItems.forEach((item, index) => {
+                shopText += `${index + 1}. ${item.name} - ${item.price}金币\n   ${item.description}\n\n`;
+            });
+            
+            document.getElementById('story-text').textContent = shopText;
+            
+            const choices = gameState.shopItems.map((item, index) => ({
+                text: `💰 购买 ${item.name} (${item.price}金币)`,
+                action: `buy_${index}`
+            }));
+            
+            choices.push({ text: '🔙 返回商店', action: 'shop' });
+            updateChoices(choices);
+        }
+        
+        function showShopSell() {
+            document.getElementById('story-title').textContent = '💰 出售物品';
+            
+            if (gameState.player.inventory.length === 0) {
+                document.getElementById('story-text').textContent = '你的背包里没有可以出售的物品。';
+                updateChoices([{ text: '🔙 返回商店', action: 'shop' }]);
+                return;
+            }
+            
+            let sellText = `选择要出售的物品：\n\n`;
+            gameState.player.inventory.forEach((item, index) => {
+                const sellPrice = Math.floor(item.price * 0.6); // 60%的原价
+                sellText += `${index + 1}. ${item.name} - 出售价格：${sellPrice}金币\n`;
+            });
+            
+            document.getElementById('story-text').textContent = sellText;
+            
+            const choices = gameState.player.inventory.map((item, index) => {
+                const sellPrice = Math.floor(item.price * 0.6);
+                return {
+                    text: `💰 出售 ${item.name} (${sellPrice}金币)`,
+                    action: `sell_${index}`
+                };
+            });
+            
+            choices.push({ text: '🔙 返回商店', action: 'shop' });
+            updateChoices(choices);
+        }
+        
+        function sellItem(index) {
+            const item = gameState.player.inventory[index];
+            if (item) {
+                const sellPrice = Math.floor(item.price * 0.6);
+                gameState.player.gold += sellPrice;
+                gameState.player.inventory.splice(index, 1);
+                
+                document.getElementById('story-title').textContent = '💰 物品已出售';
+                document.getElementById('story-text').textContent = `
+                    你成功出售了${item.name}，获得了${sellPrice}金币。
+                    
+                    商店老板满意地点了点头："这是个好东西，谢谢你的生意！"
+                `;
+                
+                updateChoices([
+                    { text: '💰 继续出售', action: 'shop_sell' },
+                    { text: '🛍️ 购买物品', action: 'shop_buy' },
+                    { text: '🔙 返回商店', action: 'shop' }
+                ]);
+                
+                addLog(`💰 出售了${item.name}，获得${sellPrice}金币`);
+                updatePlayerStats();
+            }
+        }
+        
+        // 键盘事件监听器
         document.addEventListener("keydown", (event) => {
             if (gameState.gameMode === "map") {
                 switch (event.key) {
