@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anoma RPG - 意图之境</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #ffd700;
+        }
+
+        .game-title {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #444;
+        }
+
+        .main-content {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #444;
+        }
+
+        .player-stats {
+            margin-bottom: 20px;
+        }
+
+        .stat-bar {
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #666;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .hp-bar { background: #e74c3c; }
+        .mp-bar { background: #3498db; }
+        .exp-bar { background: #f39c12; }
+
+        .character-image {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .character-image img {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+        }
+
+        .story-content {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #666;
+        }
+
+        .story-text {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .choices {
+            display: grid;
+            gap: 10px;
+        }
+
+        .choice-btn {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            color: white;
+            border: 2px solid #3498db;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: linear-gradient(45deg, #34495e, #2c3e50);
+            border-color: #ffd700;
+            transform: translateY(-2px);
+        }
+
+        .shop-container, .inn-container, .inventory-container, .map-container {
+            display: none;
+        }
+
+        .shop-container.active, .inn-container.active, .inventory-container.active, .map-container.active {
+            display: block;
+        }
+
+        .shop-items, .inventory-items {
+            display: grid;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .item {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .item-description {
+            font-size: 0.9em;
+            color: #ccc;
+            margin: 5px 0;
+        }
+
+        .item-price {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .buy-btn, .sell-btn, .use-btn, .equip-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .buy-btn:hover, .sell-btn:hover, .use-btn:hover, .equip-btn:hover {
+            background: #2ecc71;
+        }
+
+        .buy-btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .game-log {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #666;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #3498db;
+            padding-left: 10px;
+        }
+
+        .back-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .back-btn:hover {
+            background: #c0392b;
+        }
+
+        .inn-service {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .rest-btn {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 10px;
+        }
+
+        .rest-btn:hover {
+            background: #8e44ad;
+        }
+
+        .rest-btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .npc-dialogue {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #f39c12;
+        }
+
+        .npc-name {
+            color: #f39c12;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .dialogue-text {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            gap: 2px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        .map-cell {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .map-cell.player {
+            background: #e74c3c;
+            border-color: #ffd700;
+        }
+
+        .map-cell.forest {
+            background: #27ae60;
+        }
+
+        .map-cell.town {
+            background: #3498db;
+        }
+
+        .map-cell.mountain {
+            background: #95a5a6;
+        }
+
+        .companion-info {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #3498db;
+        }
+
+        .companion-name {
+            color: #3498db;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-title {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="game-title">🧙‍♂️ Anoma RPG - 意图之境 🌟</h1>
+        
+        <div class="game-layout">
+            <!-- 侧边栏 - 角色状态 -->
+            <div class="sidebar">
+                <div class="player-stats">
+                    <h3>🧙‍♂️ 意图法师</h3>
+                    <p>等级: <span id="player-level">1</span></p>
+                    <p>金币: <span id="player-gold">100</span> 💰</p>
+                    
+                    <div class="stat-bar">
+                        <div class="stat-label">生命值: <span id="hp-text">100/100</span></div>
+                        <div class="progress-bar">
+                            <div class="progress-fill hp-bar" id="hp-bar" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-bar">
+                        <div class="stat-label">魔法值: <span id="mp-text">50/50</span></div>
+                        <div class="progress-bar">
+                            <div class="progress-fill mp-bar" id="mp-bar" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-bar">
+                        <div class="stat-label">经验值: <span id="exp-text">0/100</span></div>
+                        <div class="progress-bar">
+                            <div class="progress-fill exp-bar" id="exp-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="character-image">
+                    <img id="character-img" src="wizard.png" alt="角色图像">
+                </div>
+
+                <!-- 伙伴信息 -->
+                <div id="companion-section" style="display: none;">
+                    <div class="companion-info">
+                        <div class="companion-name" id="companion-name">虾虾</div>
+                        <div class="stat-bar">
+                            <div class="stat-label">生命值: <span id="companion-hp-text">60/60</span></div>
+                            <div class="progress-bar">
+                                <div class="progress-fill hp-bar" id="companion-hp-bar" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快捷操作 -->
+                <div style="margin-top: 20px;">
+                    <button class="choice-btn" onclick="saveGame()" style="width: 100%; margin-bottom: 10px;">💾 保存游戏</button>
+                    <button class="choice-btn" onclick="loadGame()" style="width: 100%;">📁 加载游戏</button>
+                </div>
+            </div>
+
+            <!-- 主要内容区域 -->
+            <div class="main-content">
+                <!-- 故事模式 -->
+                <div id="story-mode">
+                    <div class="story-content">
+                        <div class="story-text" id="story-text">
+                            在Anoma的神秘世界中，你是一名刚刚觉醒意图能力的年轻法师。这个世界由无数个"意图"构成，每个意图都是现实的一个片段，而你拥有操控这些意图的天赋。
+
+                            你站在新手村的中央，周围是熟悉的茅草屋和石板路。远处的地平线上，神秘的意图之塔若隐若现，那里据说隐藏着Anoma世界的终极秘密。
+
+                            你的导师告诉你，只有通过不断的冒险和战斗，才能提升你的意图操控能力，最终成为真正的意图大师。
+                        </div>
+                        
+                        <div class="choices" id="story-choices">
+                            <button class="choice-btn" onclick="goToVillageChief()">🏠 前往村长家接受第一个任务</button>
+                            <button class="choice-btn" onclick="exploreForest()">🌲 探索村庄周围的森林</button>
+                            <button class="choice-btn" onclick="openInventory()">📊 查看个人状态和装备</button>
+                            <button class="choice-btn" onclick="openShop()">🏪 前往商店购买物品</button>
+                            <button class="choice-btn" onclick="openMap()">🗺️ 打开世界地图</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 商店模式 -->
+                <div id="shop-mode" class="shop-container">
+                    <h2>🏪 意图商店</h2>
+                    <p>欢迎来到意图商店！这里有各种冒险必需品。</p>
+                    
+                    <div class="npc-dialogue">
+                        <div class="npc-name">商人鲍勃</div>
+                        <div class="dialogue-text">
+                            "欢迎来到我们的小镇！这里的贸易很繁荣。如果你需要好装备，记得去商店看看！意图法师们总是很忙碌，但记得要好好休息哦。"
+                        </div>
+                    </div>
+                    
+                    <div class="shop-items" id="shop-items">
+                        <!-- 商店物品将通过JavaScript动态生成 -->
+                    </div>
+                    
+                    <button class="back-btn" onclick="backToStory()">返回村庄</button>
+                </div>
+
+                <!-- 旅店模式 -->
+                <div id="inn-mode" class="inn-container">
+                    <h2>🏨 意图旅店</h2>
+                    
+                    <div class="npc-dialogue">
+                        <div class="npc-name">客栈老板娘玛丽</div>
+                        <div class="dialogue-text" id="inn-dialogue">
+                            "欢迎来到意图旅店！累了吗？在这里休息一下，只需要20金币就能完全恢复你的生命值和魔法值。我们的床铺是全村最舒服的！"
+                        </div>
+                    </div>
+                    
+                    <div class="inn-service">
+                        <h3>💤 休息服务</h3>
+                        <p>费用: 20 金币</p>
+                        <p>效果: 完全恢复生命值和魔法值</p>
+                        <button class="rest-btn" id="rest-btn" onclick="restAtInn()">💤 休息 (20金币)</button>
+                    </div>
+                    
+                    <button class="back-btn" onclick="backToStory()">离开旅店</button>
+                </div>
+
+                <!-- 背包模式 -->
+                <div id="inventory-mode" class="inventory-container">
+                    <h2>🎒 物品背包</h2>
+                    
+                    <div class="inventory-items" id="inventory-items">
+                        <!-- 背包物品将通过JavaScript动态生成 -->
+                    </div>
+                    
+                    <button class="back-btn" onclick="backToStory()">关闭背包</button>
+                </div>
+
+                <!-- 地图模式 -->
+                <div id="map-mode" class="map-container">
+                    <h2>🗺️ 意图世界地图</h2>
+                    <p>使用方向键或点击移动。🧙‍♂️ 表示你的位置。</p>
+                    
+                    <div class="map-grid" id="map-grid">
+                        <!-- 地图将通过JavaScript动态生成 -->
+                    </div>
+                    
+                    <div style="text-align: center; margin: 20px 0;">
+                        <button class="choice-btn" onclick="movePlayer(-1, 0)" style="width: 60px;">⬅️</button>
+                        <button class="choice-btn" onclick="movePlayer(1, 0)" style="width: 60px;">➡️</button>
+                        <button class="choice-btn" onclick="movePlayer(0, -1)" style="width: 60px;">⬆️</button>
+                        <button class="choice-btn" onclick="movePlayer(0, 1)" style="width: 60px;">⬇️</button>
+                    </div>
+                    
+                    <button class="back-btn" onclick="backToStory()">关闭地图</button>
+                </div>
+
+                <!-- 游戏日志 -->
+                <div class="game-log">
+                    <h4>📜 游戏日志</h4>
+                    <div id="game-log">
+                        <div class="log-entry">游戏开始！欢迎来到Anoma世界！</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let gameState = {
+            player: {
+                level: 1,
+                hp: 100,
+                maxHp: 100,
+                mp: 50,
+                maxMp: 50,
+                exp: 0,
+                maxExp: 100,
+                gold: 100,
+                x: 5,
+                y: 5,
+                inventory: [
+                    { id: 'potion', name: '治疗药水', type: 'consumable', effect: { hp: 30 }, price: 50, description: '恢复30点生命值' },
+                    { id: 'mana_potion', name: '魔法药水', type: 'consumable', effect: { mp: 20 }, price: 40, description: '恢复20点魔法值' }
+                ],
+                equipment: {
+                    weapon: { id: 'starter_staff', name: '新手法杖', attack: 10 },
+                    armor: { id: 'cloth_robe', name: '布制长袍', defense: 5 }
+                },
+                companions: []
+            },
+            currentScene: 'intro',
+            gameMode: 'story',
+            hasCompanion: false,
+            gameMap: null
+        };
+
+        // 商店物品
+        const shopItems = [
+            { id: 'healing_potion', name: '治疗药水', type: 'consumable', effect: { hp: 30 }, price: 50, description: '恢复30点生命值' },
+            { id: 'mana_potion', name: '魔法药水', type: 'consumable', effect: { mp: 20 }, price: 40, description: '恢复20点魔法值' },
+            { id: 'iron_sword', name: '铁剑', type: 'weapon', attack: 20, price: 100, description: '攻击力+20的铁制武器' },
+            { id: 'leather_armor', name: '皮甲', type: 'armor', defense: 10, price: 80, description: '防御力+10的皮制护甲' },
+            { id: 'magic_ring', name: '魔法戒指', type: 'accessory', mp: 20, price: 150, description: '增加20点最大魔法值' },
+            { id: 'strength_potion', name: '力量药水', type: 'consumable', effect: { attack: 10 }, price: 50, description: '临时增加10点攻击力' }
+        ];
+
+        // 初始化游戏
+        function initGame() {
+            updateUI();
+            generateMap();
+            addLog('游戏初始化完成！');
+        }
+
+        // 更新UI
+        function updateUI() {
+            document.getElementById('player-level').textContent = gameState.player.level;
+            document.getElementById('player-gold').textContent = gameState.player.gold;
+            
+            // 更新血条
+            const hpPercent = (gameState.player.hp / gameState.player.maxHp) * 100;
+            document.getElementById('hp-bar').style.width = hpPercent + '%';
+            document.getElementById('hp-text').textContent = `${gameState.player.hp}/${gameState.player.maxHp}`;
+            
+            // 更新魔法条
+            const mpPercent = (gameState.player.mp / gameState.player.maxMp) * 100;
+            document.getElementById('mp-bar').style.width = mpPercent + '%';
+            document.getElementById('mp-text').textContent = `${gameState.player.mp}/${gameState.player.maxMp}`;
+            
+            // 更新经验条
+            const expPercent = (gameState.player.exp / gameState.player.maxExp) * 100;
+            document.getElementById('exp-bar').style.width = expPercent + '%';
+            document.getElementById('exp-text').textContent = `${gameState.player.exp}/${gameState.player.maxExp}`;
+
+            // 更新伙伴信息
+            if (gameState.hasCompanion) {
+                document.getElementById('companion-section').style.display = 'block';
+                document.getElementById('character-img').src = 'monster7.png';
+            }
+        }
+
+        // 添加日志
+        function addLog(message) {
+            const logDiv = document.getElementById('game-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = message;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // 切换游戏模式
+        function switchMode(mode) {
+            // 隐藏所有模式
+            document.getElementById('story-mode').style.display = 'none';
+            document.getElementById('shop-mode').style.display = 'none';
+            document.getElementById('inn-mode').style.display = 'none';
+            document.getElementById('inventory-mode').style.display = 'none';
+            document.getElementById('map-mode').style.display = 'none';
+            
+            // 显示指定模式
+            document.getElementById(mode + '-mode').style.display = 'block';
+            gameState.gameMode = mode;
+        }
+
+        // 故事选择函数
+        function goToVillageChief() {
+            document.getElementById('story-text').innerHTML = `
+                村长是一位慈祥的老人，他的眼中闪烁着智慧的光芒。当你走进他的房间时，他正在研究一张古老的地图。
+                <br><br>
+                "年轻的意图法师，"村长抬起头看着你，"我们村庄最近遇到了麻烦。森林深处出现了一些奇怪的生物，它们似乎被某种扭曲的意图所驱动。
+                <br><br>
+                我需要你去调查这件事，但首先，你需要一个伙伴。在村庄的东边，有一只名叫虾虾的神奇生物，它一直在等待合适的意图法师。"
+            `;
+            
+            document.getElementById('story-choices').innerHTML = `
+                <button class="choice-btn" onclick="findCompanion()">🦐 接受任务，前往寻找虾虾</button>
+                <button class="choice-btn" onclick="openInn()">🏨 先去旅店休息一下</button>
+                <button class="choice-btn" onclick="openShop()">🏪 前往商店购买装备</button>
+                <button class="choice-btn" onclick="backToVillage()">🏠 返回村庄中心</button>
+            `;
+            
+            addLog('你前往村长家接受了任务');
+        }
+
+        function findCompanion() {
+            gameState.hasCompanion = true;
+            document.getElementById('story-text').innerHTML = `
+                你来到村庄东边的小溪旁，这里水草丰茂，阳光透过树叶洒在水面上。突然，一个红色的身影从水中跃出！
+                <br><br>
+                这就是虾虾——一只戴着蓝色帽子的神奇虾类生物。它的眼中闪烁着电光，似乎拥有某种特殊的能力。
+                <br><br>
+                虾虾看到你后，兴奋地游到岸边，用它独特的方式与你交流。你感受到了一种奇妙的意图共鸣。
+                <br><br>
+                <strong>虾虾加入了你的队伍！</strong>
+            `;
+            
+            document.getElementById('story-choices').innerHTML = `
+                <button class="choice-btn" onclick="exploreForest()">🌲 与虾虾一起探索森林</button>
+                <button class="choice-btn" onclick="openShop()">🏪 先去商店购买装备</button>
+                <button class="choice-btn" onclick="openInn()">🏨 去旅店庆祝一下</button>
+                <button class="choice-btn" onclick="backToVillage()">🏠 返回村庄中心</button>
+            `;
+            
+            updateUI();
+            addLog('虾虾加入了你的队伍！');
+        }
+
+        function exploreForest() {
+            document.getElementById('story-text').innerHTML = `
+                你${gameState.hasCompanion ? '和虾虾一起' : ''}来到了村庄外的森林边缘。这里的树木异常高大，枝叶茂密得几乎遮蔽了天空。
+                <br><br>
+                空气中弥漫着一种奇特的能量波动，你的意图感知告诉你，这里隐藏着许多秘密。
+                <br><br>
+                远处传来了奇怪的声音，似乎是某种生物在移动。你需要小心行事。
+            `;
+            
+            document.getElementById('story-choices').innerHTML = `
+                <button class="choice-btn" onclick="encounterBattle()">⚔️ 深入森林探索</button>
+                <button class="choice-btn" onclick="findTreasure()">💎 搜索隐藏的宝藏</button>
+                <button class="choice-btn" onclick="openMap()">🗺️ 查看地图规划路线</button>
+                <button class="choice-btn" onclick="backToVillage()">🏠 返回村庄</button>
+            `;
+            
+            addLog('你进入了神秘的森林');
+        }
+
+        function encounterBattle() {
+            const damage = Math.floor(Math.random() * 20) + 10;
+            const expGain = Math.floor(Math.random() * 30) + 20;
+            const goldGain = Math.floor(Math.random() * 50) + 25;
+            
+            gameState.player.hp = Math.max(0, gameState.player.hp - damage);
+            gameState.player.exp += expGain;
+            gameState.player.gold += goldGain;
+            
+            // 检查升级
+            if (gameState.player.exp >= gameState.player.maxExp) {
+                gameState.player.level++;
+                gameState.player.exp = 0;
+                gameState.player.maxExp += 50;
+                gameState.player.maxHp += 20;
+                gameState.player.hp = gameState.player.maxHp;
+                gameState.player.maxMp += 10;
+                gameState.player.mp = gameState.player.maxMp;
+                addLog(`恭喜！你升到了${gameState.player.level}级！`);
+            }
+            
+            document.getElementById('story-text').innerHTML = `
+                你在森林深处遇到了一只被扭曲意图影响的森林生物！
+                <br><br>
+                经过一番激烈的战斗，你${gameState.hasCompanion ? '和虾虾' : ''}成功击败了它。虽然受了一些伤（-${damage} HP），但你获得了宝贵的经验。
+                <br><br>
+                <strong>战斗结果：</strong><br>
+                • 受到伤害：${damage} HP<br>
+                • 获得经验：${expGain} EXP<br>
+                • 获得金币：${goldGain} 💰
+            `;
+            
+            document.getElementById('story-choices').innerHTML = `
+                <button class="choice-btn" onclick="openInn()">🏨 去旅店治疗伤势</button>
+                <button class="choice-btn" onclick="usePotion()">🧪 使用治疗药水</button>
+                <button class="choice-btn" onclick="exploreForest()">🌲 继续探索森林</button>
+                <button class="choice-btn" onclick="backToVillage()">🏠 返回村庄</button>
+            `;
+            
+            updateUI();
+            addLog(`战斗胜利！获得${expGain}经验和${goldGain}金币`);
+        }
+
+        function findTreasure() {
+            const goldFound = Math.floor(Math.random() * 100) + 50;
+            gameState.player.gold += goldFound;
+            
+            // 随机获得物品
+            const treasureItems = [
+                { id: 'rare_potion', name: '稀有治疗药水', type: 'consumable', effect: { hp: 80 }, price: 120, description: '恢复80点生命值的珍贵药水' },
+                { id: 'magic_crystal', name: '魔法水晶', type: 'consumable', effect: { mp: 50 }, price: 100, description: '蕴含纯净魔法能量的水晶' }
+            ];
+            
+            const foundItem = treasureItems[Math.floor(Math.random() * treasureItems.length)];
+            gameState.player.inventory.push(foundItem);
+            
+            document.getElementById('story-text').innerHTML = `
+                在森林的一个隐秘角落，你发现了一个古老的宝箱！
+                <br><br>
+                宝箱散发着微弱的意图光芒，显然是被某种魔法保护着的。当你小心翼翼地打开它时，里面的宝物让你眼前一亮！
+                <br><br>
+                <strong>发现宝藏：</strong><br>
+                • 金币：${goldFound} 💰<br>
+                • 物品：${foundItem.name}
+            `;
+            
+            document.getElementById('story-choices').innerHTML = `
+                <button class="choice-btn" onclick="exploreForest()">🌲 继续探索森林</button>
+                <button class="choice-btn" onclick="openInventory()">🎒 查看获得的物品</button>
+                <button class="choice-btn" onclick="backToVillage()">🏠 返回村庄</button>
+                <button class="choice-btn" onclick="openShop()">🏪 去商店出售物品</button>
+            `;
+            
+            updateUI();
+            addLog(`发现宝藏！获得${goldFound}金币和${foundItem.name}`);
+        }
+
+        function usePotion() {
+            const potionIndex = gameState.player.inventory.findIndex(item => item.type === 'consumable' && item.effect.hp);
+            if (potionIndex !== -1) {
+                const potion = gameState.player.inventory[potionIndex];
+                gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + potion.effect.hp);
+                gameState.player.inventory.splice(potionIndex, 1);
+                addLog(`使用了${potion.name}，恢复了${potion.effect.hp}点生命值`);
+                updateUI();
+                exploreForest();
+            } else {
+                addLog('你没有治疗药水！');
+                exploreForest();
+            }
+        }
+
+        function backToVillage() {
+            document.getElementById('story-text').innerHTML = `
+                你回到了熟悉的新手村。村庄里的人们正在忙碌着各自的事情，空气中弥漫着炊烟的香味。
+                <br><br>
+                ${gameState.hasCompanion ? '虾虾在你身边游来游去，似乎对这个地方很感兴趣。' : ''}
+                <br><br>
+                你可以选择接下来要做什么。
+            `;
+            
+            document.getElementById('story-choices').innerHTML = `
+                <button class="choice-btn" onclick="goToVillageChief()">🏠 前往村长家接受任务</button>
+                <button class="choice-btn" onclick="exploreForest()">🌲 探索村庄周围的森林</button>
+                <button class="choice-btn" onclick="openInventory()">📊 查看个人状态和装备</button>
+                <button class="choice-btn" onclick="openShop()">🏪 前往商店购买物品</button>
+                <button class="choice-btn" onclick="openMap()">🗺️ 打开世界地图</button>
+            `;
+            
+            addLog('你回到了村庄中心');
+        }
+
+        // 商店功能
+        function openShop() {
+            switchMode('shop');
+            renderShop();
+            addLog('你进入了商店');
+        }
+
+        function renderShop() {
+            const shopContainer = document.getElementById('shop-items');
+            shopContainer.innerHTML = '';
+            
+            shopItems.forEach(item => {
+                const canAfford = gameState.player.gold >= item.price;
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-description">${item.description}</div>
+                        <div class="item-price">价格: ${item.price} 金币</div>
+                    </div>
+                    <button class="buy-btn" onclick="buyItem('${item.id}')" ${!canAfford ? 'disabled' : ''}>
+                        ${canAfford ? '购买' : '金币不足'}
+                    </button>
+                `;
+                shopContainer.appendChild(itemDiv);
+            });
+        }
+
+        function buyItem(itemId) {
+            const item = shopItems.find(i => i.id === itemId);
+            if (item && gameState.player.gold >= item.price) {
+                gameState.player.gold -= item.price;
+                gameState.player.inventory.push({...item});
+                addLog(`购买了${item.name}，花费${item.price}金币`);
+                updateUI();
+                renderShop();
+            }
+        }
+
+        // 旅店功能
+        function openInn() {
+            switchMode('inn');
+            updateRestButton();
+            addLog('你进入了旅店');
+        }
+
+        function updateRestButton() {
+            const restBtn = document.getElementById('rest-btn');
+            const canAfford = gameState.player.gold >= 20;
+            const needsRest = gameState.player.hp < gameState.player.maxHp || gameState.player.mp < gameState.player.maxMp;
+            
+            restBtn.disabled = !canAfford || !needsRest;
+            
+            if (!needsRest) {
+                restBtn.textContent = '💤 你已经完全恢复了';
+            } else if (!canAfford) {
+                restBtn.textContent = '💤 金币不足 (需要20金币)';
+            } else {
+                restBtn.textContent = '💤 休息 (20金币)';
+            }
+        }
+
+        function restAtInn() {
+            if (gameState.player.gold >= 20) {
+                gameState.player.gold -= 20;
+                gameState.player.hp = gameState.player.maxHp;
+                gameState.player.mp = gameState.player.maxMp;
+                
+                document.getElementById('inn-dialogue').innerHTML = `
+                    "好好休息吧！"玛丽温和地说道。你在舒适的床铺上睡了一觉，感觉精神焕发！
+                    <br><br>
+                    <strong>你的生命值和魔法值已完全恢复！</strong>
+                `;
+                
+                addLog('在旅店休息，完全恢复了生命值和魔法值');
+                updateUI();
+                updateRestButton();
+            }
+        }
+
+        // 背包功能
+        function openInventory() {
+            switchMode('inventory');
+            renderInventory();
+            addLog('你打开了背包');
+        }
+
+        function renderInventory() {
+            const inventoryContainer = document.getElementById('inventory-items');
+            inventoryContainer.innerHTML = '';
+            
+            if (gameState.player.inventory.length === 0) {
+                inventoryContainer.innerHTML = '<p>背包是空的</p>';
+                return;
+            }
+            
+            gameState.player.inventory.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                
+                let actionButton = '';
+                if (item.type === 'consumable') {
+                    actionButton = `<button class="use-btn" onclick="useInventoryItem(${index})">使用</button>`;
+                } else {
+                    actionButton = `<button class="equip-btn" onclick="equipItem(${index})">装备</button>`;
+                }
+                
+                itemDiv.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-description">${item.description}</div>
+                        <div class="item-price">价值: ${item.price} 金币</div>
+                    </div>
+                    <div>
+                        ${actionButton}
+                        <button class="sell-btn" onclick="sellItem(${index})">出售</button>
+                    </div>
+                `;
+                inventoryContainer.appendChild(itemDiv);
+            });
+        }
+
+        function useInventoryItem(index) {
+            const item = gameState.player.inventory[index];
+            if (item.type === 'consumable') {
+                if (item.effect.hp) {
+                    gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + item.effect.hp);
+                    addLog(`使用了${item.name}，恢复了${item.effect.hp}点生命值`);
+                }
+                if (item.effect.mp) {
+                    gameState.player.mp = Math.min(gameState.player.maxMp, gameState.player.mp + item.effect.mp);
+                    addLog(`使用了${item.name}，恢复了${item.effect.mp}点魔法值`);
+                }
+                
+                gameState.player.inventory.splice(index, 1);
+                updateUI();
+                renderInventory();
+            }
+        }
+
+        function equipItem(index) {
+            const item = gameState.player.inventory[index];
+            // 简化的装备系统
+            addLog(`装备了${item.name}`);
+            gameState.player.inventory.splice(index, 1);
+            renderInventory();
+        }
+
+        function sellItem(index) {
+            const item = gameState.player.inventory[index];
+            const sellPrice = Math.floor(item.price * 0.7); // 70%的价格出售
+            gameState.player.gold += sellPrice;
+            gameState.player.inventory.splice(index, 1);
+            addLog(`出售了${item.name}，获得${sellPrice}金币`);
+            updateUI();
+            renderInventory();
+        }
+
+        // 地图功能
+        function openMap() {
+            switchMode('map');
+            renderMap();
+            addLog('你打开了世界地图');
+        }
+
+        function generateMap() {
+            gameState.gameMap = [];
+            for (let y = 0; y < 10; y++) {
+                gameState.gameMap[y] = [];
+                for (let x = 0; x < 10; x++) {
+                    let terrain = 'grass';
+                    if (Math.random() < 0.2) terrain = 'forest';
+                    else if (Math.random() < 0.1) terrain = 'mountain';
+                    else if (Math.random() < 0.05) terrain = 'town';
+                    
+                    gameState.gameMap[y][x] = {
+                        terrain: terrain,
+                        discovered: false
+                    };
+                }
+            }
+            
+            // 设置起始位置
+            gameState.gameMap[gameState.player.y][gameState.player.x] = {
+                terrain: 'village',
+                discovered: true
+            };
+        }
+
+        function renderMap() {
+            const mapContainer = document.getElementById('map-grid');
+            mapContainer.innerHTML = '';
+            
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 10; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'map-cell';
+                    
+                    if (x === gameState.player.x && y === gameState.player.y) {
+                        cell.textContent = '🧙‍♂️';
+                        cell.classList.add('player');
+                    } else if (gameState.gameMap[y][x].discovered) {
+                        const terrain = gameState.gameMap[y][x].terrain;
+                        switch (terrain) {
+                            case 'village': cell.textContent = '🏘️'; break;
+                            case 'town': cell.textContent = '🏛️'; cell.classList.add('town'); break;
+                            case 'forest': cell.textContent = '🌲'; cell.classList.add('forest'); break;
+                            case 'mountain': cell.textContent = '⛰️'; cell.classList.add('mountain'); break;
+                            default: cell.textContent = '🌱'; break;
+                        }
+                    } else {
+                        cell.textContent = '❓';
+                    }
+                    
+                    cell.onclick = () => movePlayerTo(x, y);
+                    mapContainer.appendChild(cell);
+                }
+            }
+        }
+
+        function movePlayer(dx, dy) {
+            const newX = Math.max(0, Math.min(9, gameState.player.x + dx));
+            const newY = Math.max(0, Math.min(9, gameState.player.y + dy));
+            
+            if (newX !== gameState.player.x || newY !== gameState.player.y) {
+                gameState.player.x = newX;
+                gameState.player.y = newY;
+                
+                // 发现新区域
+                gameState.gameMap[newY][newX].discovered = true;
+                
+                // 随机事件
+                const terrain = gameState.gameMap[newY][newX].terrain;
+                if (terrain === 'forest' && Math.random() < 0.3) {
+                    addLog('在森林中遇到了野生动物！');
+                } else if (terrain === 'town') {
+                    addLog('到达了一个繁华的城镇');
+                }
+                
+                renderMap();
+                addLog(`移动到位置 (${newX}, ${newY})`);
+            }
+        }
+
+        function movePlayerTo(x, y) {
+            const distance = Math.abs(x - gameState.player.x) + Math.abs(y - gameState.player.y);
+            if (distance === 1) {
+                movePlayer(x - gameState.player.x, y - gameState.player.y);
+            }
+        }
+
+        // 返回故事模式
+        function backToStory() {
+            switchMode('story');
+            addLog('返回到故事模式');
+        }
+
+        // 保存和加载游戏
+        function saveGame() {
+            localStorage.setItem('anomaRpgSave', JSON.stringify(gameState));
+            addLog('游戏已保存');
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('anomaRpgSave');
+            if (saved) {
+                gameState = JSON.parse(saved);
+                updateUI();
+                addLog('游戏已加载');
+            } else {
+                addLog('没有找到保存的游戏');
+            }
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', function(e) {
+            if (gameState.gameMode === 'map') {
+                switch(e.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                        e.preventDefault();
+                        movePlayer(0, -1);
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                        e.preventDefault();
+                        movePlayer(0, 1);
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                        e.preventDefault();
+                        movePlayer(-1, 0);
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                        e.preventDefault();
+                        movePlayer(1, 0);
+                        break;
+                }
+            }
+        });
+
+        // 游戏初始化
+        window.onload = function() {
+            initGame();
+        };
+    </script>
+</body>
+</html>
+
