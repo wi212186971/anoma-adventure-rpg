@@ -653,12 +653,13 @@
                 initializeMap();
             }
             
-            document.getElementById('story-section').style.display = 'none';
-            document.getElementById('choices').style.display = 'none';
-            document.getElementById('map-container').style.display = 'block';
+            document.getElementById("story-section").style.display = "none";
+            document.getElementById("choices").style.display = "none";
+            document.getElementById("map-container").style.display = "block";
+            gameState.gameMode = "map"; // 设置游戏模式为地图
             
             renderMap();
-            addLog('🗺️ 打开了世界地图');
+            addLog("🗺️ 打开了世界地图");
         }
         
         // 渲染地图
@@ -801,10 +802,11 @@
         
         // 关闭地图
         function closeMap() {
-            document.getElementById('story-section').style.display = 'block';
-            document.getElementById('choices').style.display = 'grid';
-            document.getElementById('map-container').style.display = 'none';
-            makeChoice('village_center');
+            document.getElementById("story-section").style.display = "block";
+            document.getElementById("choices").style.display = "grid";
+            document.getElementById("map-container").style.display = "none";
+            gameState.gameMode = "story"; // 设置游戏模式为故事
+            makeChoice("village_center");
         }
         
         // 开始战斗
@@ -952,6 +954,26 @@
         window.onload = function() {
             initGame();
         };
+
+        // 键盘事件监听
+        document.addEventListener("keydown", (event) => {
+            if (gameState.gameMode === "map") {
+                switch (event.key) {
+                    case "ArrowUp":
+                        movePlayer(0, -1);
+                        break;
+                    case "ArrowDown":
+                        movePlayer(0, 1);
+                        break;
+                    case "ArrowLeft":
+                        movePlayer(-1, 0);
+                        break;
+                    case "ArrowRight":
+                        movePlayer(1, 0);
+                        break;
+                }
+            }
+        });
     </script>
 </body>
 </html>
