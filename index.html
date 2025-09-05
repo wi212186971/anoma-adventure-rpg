@@ -776,17 +776,17 @@
                     
                 default:
                     // 处理动态生成的动作
-                    if (action.startsWith('talk_')) {
-                        const npcId = action.replace('talk_', '');
+                    if (action.startsWith("talk_")) {
+                        const npcId = action.replace("talk_", "");
                         talkToNpc(npcId);
-                    } else if (action.startsWith('buy_')) {
-                        const itemIndex = parseInt(action.replace('buy_', ''));
+                    } else if (action.startsWith("buy_")) {
+                        const itemIndex = parseInt(action.replace("buy_", ""));
                         buyItem(itemIndex);
-                    } else if (action.startsWith('sell_')) {
-                        const itemIndex = parseInt(action.replace('sell_', ''));
+                    } else if (action.startsWith("sell_")) {
+                        const itemIndex = parseInt(action.replace("sell_", ""));
                         sellItem(itemIndex);
-                    } else if (action.startsWith('recruit_')) {
-                        const companionId = action.replace('recruit_', '');
+                    } else if (action.startsWith("recruit_")) {
+                        const companionId = action.replace("recruit_", "");
                         recruitCompanion(companionId);
                     }
                     break;
@@ -1395,6 +1395,35 @@
             updateChoices(choices);
         }
         
+        function buyItem(index) {
+            const item = gameState.shopItems[index];
+            if (item) {
+                if (gameState.player.gold >= item.price) {
+                    gameState.player.gold -= item.price;
+                    gameState.player.inventory.push(item);
+                    
+                    document.getElementById("story-title").textContent = "🛍️ 购买成功";
+                    document.getElementById("story-text").textContent = `你成功购买了${item.name}，花费了${item.price}金币。`;
+                    
+                    updateChoices([
+                        { text: "💰 继续购买", action: "shop_buy" },
+                        { text: "🔙 返回商店", action: "shop" }
+                    ]);
+                    
+                    addLog(`🛍️ 购买了${item.name}，花费${item.price}金币`);
+                    updatePlayerStats();
+                } else {
+                    document.getElementById("story-title").textContent = "💰 金币不足";
+                    document.getElementById("story-text").textContent = `你没有足够的金币购买${item.name}。你需要${item.price}金币，但你只有${gameState.player.gold}金币。`;
+                    updateChoices([
+                        { text: "💰 继续购买", action: "shop_buy" },
+                        { text: "🔙 返回商店", action: "shop" }
+                    ]);
+                    addLog(`❌ 金币不足，无法购买${item.name}`);
+                }
+            }
+        }
+
         function sellItem(index) {
             const item = gameState.player.inventory[index];
             if (item) {
