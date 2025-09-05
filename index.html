@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anoma RPG - 意图之境</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,13 +13,420 @@
         }
         
         body {
-            font-family: 'Microsoft YaHei', Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
-            color: #ffffff;
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom right, #2c3e50, #34495e);
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            box-sizing: border-box;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
-        
+
+        #game-container {
+            width: 95%;
+            max-width: 900px;
+            text-align: center;
+            margin: 20px auto;
+            border: 3px solid #3498db;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #game-container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(45deg, #e74c3c, #f39c12, #2ecc71, #3498db);
+            z-index: -1;
+            filter: blur(15px);
+            opacity: 0.6;
+        }
+
+        #story-title {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #f1c40f;
+            text-shadow: 2px 2px #c0392b;
+            border-bottom: 2px solid #f1c40f;
+            padding-bottom: 10px;
+        }
+
+        #story-text {
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #3498db;
+        }
+
+        #choices {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .choice-button {
+            background-color: #3498db;
+            color: white;
+            border: 2px solid #2980b9;
+            padding: 18px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px #2c3e50;
+            box-shadow: 3px 3px #2c3e50;
+        }
+
+        .choice-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 5px 5px #2c3e50;
+        }
+
+        .choice-button:active {
+            transform: translateY(0);
+            box-shadow: 1px 1px #2c3e50;
+        }
+
+        #player-stats {
+            background-color: rgba(52, 73, 94, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 30px;
+            text-align: left;
+            font-size: 1em;
+            border: 1px solid #2ecc71;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        #player-stats div {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #player-stats span:first-child {
+            font-weight: bold;
+            color: #2ecc71;
+        }
+
+        #game-log {
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 30px;
+            text-align: left;
+            font-size: 0.9em;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #e74c3c;
+            box-shadow: inset 0 0 8px rgba(231, 76, 60, 0.5);
+            color: #ecf0f1;
+        }
+
+        #game-log div {
+            margin-bottom: 5px;
+            border-bottom: 1px dashed rgba(236, 240, 241, 0.2);
+            padding-bottom: 3px;
+        }
+
+        #game-log div:last-child {
+            border-bottom: none;
+        }
+
+        #battle-section {
+            display: none;
+            background-color: rgba(44, 62, 80, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            width: 95%;
+            max-width: 900px;
+            text-align: center;
+            margin: 20px auto;
+            border: 3px solid #e74c3c;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #enemy-display {
+            margin-bottom: 25px;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e74c3c;
+        }
+
+        #enemy-sprite {
+            font-size: 5em;
+            margin-bottom: 10px;
+            filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.5));
+        }
+
+        #enemy-name {
+            font-size: 2em;
+            color: #e74c3c;
+            text-shadow: 1px 1px #c0392b;
+        }
+
+        #enemy-hp-bar-container {
+            background-color: #c0392b;
+            border-radius: 8px;
+            height: 20px;
+            width: 90%;
+            margin: 15px auto;
+            overflow: hidden;
+            border: 1px solid #e74c3c;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        #enemy-hp-bar {
+            background-color: #2ecc71;
+            height: 100%;
+            width: 100%;
+            transition: width 0.5s ease-in-out;
+            border-radius: 8px;
+        }
+
+        #battle-choices {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        #map-container {
+            display: none;
+            background-color: rgba(44, 62, 80, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            width: 95%;
+            max-width: 900px;
+            text-align: center;
+            margin: 20px auto;
+            border: 3px solid #f39c12;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #game-map {
+            display: grid;
+            border: 2px solid #f39c12;
+            margin: 25px auto;
+            background-color: #34495e;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .map-tile {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            border: 1px solid rgba(236, 240, 241, 0.1);
+            box-sizing: border-box;
+            transition: background-color 0.2s ease;
+            text-shadow: 1px 1px #2c3e50;
+        }
+
+        .map-tile.player {
+            background-color: #f1c40f;
+            border: 3px solid #e67e22;
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.8);
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        .map-tile.grass {
+            background-color: #27ae60;
+        }
+
+        .map-tile.forest {
+            background-color: #2ecc71;
+        }
+
+        .map-tile.village {
+            background-color: #f39c12;
+        }
+
+        .map-tile.mountain {
+            background-color: #7f8c8d;
+            border: 2px solid #e74c3c; /* Obstacle border */
+            position: relative;
+        }
+
+        .map-tile.mountain::after {
+            content: '▲';
+            position: absolute;
+            color: #bdc3c7;
+            font-size: 1.2em;
+        }
+
+        .map-tile.water {
+            background-color: #3498db;
+            border: 2px solid #e74c3c; /* Obstacle border */
+            position: relative;
+        }
+
+        .map-tile.water::after {
+            content: '~';
+            position: absolute;
+            color: #ecf0f1;
+            font-size: 1.5em;
+        }
+
+        .map-tile.town {
+            background-color: #e67e22;
+        }
+
+        .map-tile.dungeon {
+            background-color: #9b59b6;
+        }
+
+        #map-controls {
+            margin-top: 20px;
+        }
+
+        #map-controls button {
+            background-color: #95a5a6;
+            color: white;
+            border: 2px solid #7f8c8d;
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 8px;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px #2c3e50;
+            box-shadow: 2px 2px #2c3e50;
+        }
+
+        #map-controls button:hover {
+            background-color: #7f8c8d;
+            transform: translateY(-2px);
+            box-shadow: 4px 4px #2c3e50;
+        }
+
+        #player-image-container {
+            margin-top: 25px;
+            margin-bottom: 25px;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        #player-image {
+            width: 180px;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 50%;
+            border: 4px solid #f1c40f;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.8);
+        }
+
+        #companion-image-container {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #2ecc71;
+        }
+
+        .companion-image {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            border-radius: 50%;
+            border: 3px solid #2ecc71;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+            transition: transform 0.2s ease;
+        }
+
+        .companion-image:hover {
+            transform: scale(1.1);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #game-container, #battle-section, #map-container {
+                padding: 15px;
+                width: 98%;
+            }
+
+            #story-title {
+                font-size: 2em;
+            }
+
+            #story-text {
+                font-size: 1em;
+            }
+
+            .choice-button {
+                padding: 12px 15px;
+                font-size: 0.9em;
+            }
+
+            .map-tile {
+                width: 25px;
+                height: 25px;
+                font-size: 1em;
+            }
+
+            #player-image {
+                width: 120px;
+                height: 120px;
+            }
+
+            .companion-image {
+                width: 70px;
+                height: 70px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #story-title {
+                font-size: 1.8em;
+            }
+
+            #choices {
+                grid-template-columns: 1fr;
+            }
+
+            .map-tile {
+                width: 20px;
+                height: 20px;
+                font-size: 0.8em;
+            }
+        }
+
+        /* Existing styles */
         .game-container {
             max-width: 800px;
             margin: 0 auto;
@@ -296,11 +704,11 @@
         
         <!-- 选择区域 -->
         <div class="choices" id="choices">
-            <button class="choice-btn" onclick="makeChoice('village_chief')">🏠 前往村长家接受第一个任务</button>
-            <button class="choice-btn" onclick="makeChoice('forest')">🌲 探索村庄周围的森林</button>
-            <button class="choice-btn" onclick="makeChoice('status')">📊 查看个人状态和装备</button>
-            <button class="choice-btn" onclick="makeChoice('shop')">🏪 前往商店购买物品</button>
-            <button class="choice-btn" onclick="makeChoice('map')">🗺️ 打开世界地图</button>
+            <button class="choice-btn" onclick="makeChoice(\'village_chief\')">🏠 前往村长家接受第一个任务</button>
+            <button class="choice-btn" onclick="makeChoice(\'forest\')">🌲 探索村庄周围的森林</button>
+            <button class="choice-btn" onclick="makeChoice(\'status\')">📊 查看个人状态和装备</button>
+            <button class="choice-btn" onclick="makeChoice(\'shop\')">🏪 前往商店购买物品</button>
+            <button class="choice-btn" onclick="makeChoice(\'map\')">🗺️ 打开世界地图</button>
         </div>
         
         <!-- 地图区域 -->
@@ -332,19 +740,414 @@
                 </div>
             </div>
             <div class="battle-actions">
-                <button class="battle-btn" onclick="battleAction('attack')">⚔️ 攻击</button>
-                <button class="battle-btn" onclick="battleAction('magic')">✨ 魔法</button>
-                <button class="battle-btn" onclick="battleAction('defend')">🛡️ 防御</button>
-                <button class="battle-btn" onclick="battleAction('escape')">🏃 逃跑</button>
-            </div>
-        </div>
-        
-        <!-- 游戏日志 -->
-        <div class="game-log" id="game-log">
-            <div class="log-entry">🎮 欢迎来到Anoma RPG - 意图之境！</div>
-            <div class="log-entry">🧙‍♂️ 你的冒险即将开始...</div>
-        </div>
-    </div>
+                <button class="battle-btn" onclick="battleAction(\'attack\')">⚔️ 攻击</button>
+                <button class="battle-btn" onclick="battleAction(\'magic\')">✨ 魔法</button>
+                <button class="battle-btn" onclick="battleAction(\'defend\')">🛡️ 防御</button>
+                <button class="battle-btn" onclick="battleAction(\'escape\')">🏃 逃跑</button>
+            </d
+        #game-container {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6), 0 0 0 10px rgba(52, 152, 219, 0.2);
+            padding: 30px;
+            width: 95%;
+            max-width: 900px;
+            text-align: center;
+            margin: 20px auto;
+            border: 3px solid #3498db;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #game-container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(45deg, #e74c3c, #f39c12, #2ecc71, #3498db);
+            z-index: -1;
+            filter: blur(15px);
+            opacity: 0.6;
+        }
+
+        #story-title {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #f1c40f;
+            text-shadow: 2px 2px #c0392b;
+            border-bottom: 2px solid #f1c40f;
+            padding-bottom: 10px;
+        }
+
+        #story-text {
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #3498db;
+        }
+
+        #choices {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .choice-button {
+            background-color: #3498db;
+            color: white;
+            border: 2px solid #2980b9;
+            padding: 18px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px #2c3e50;
+            box-shadow: 3px 3px #2c3e50;
+        }
+
+        .choice-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 5px 5px #2c3e50;
+        }
+
+        .choice-button:active {
+            transform: translateY(0);
+            box-shadow: 1px 1px #2c3e50;
+        }
+
+        #player-stats {
+            background-color: rgba(52, 73, 94, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 30px;
+            text-align: left;
+            font-size: 1em;
+            border: 1px solid #2ecc71;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        #player-stats div {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #player-stats span:first-child {
+            font-weight: bold;
+            color: #2ecc71;
+        }
+
+        #game-log {
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 30px;
+            text-align: left;
+            font-size: 0.9em;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #e74c3c;
+            box-shadow: inset 0 0 8px rgba(231, 76, 60, 0.5);
+            color: #ecf0f1;
+        }
+
+        #game-log div {
+            margin-bottom: 5px;
+            border-bottom: 1px dashed rgba(236, 240, 241, 0.2);
+            padding-bottom: 3px;
+        }
+
+        #game-log div:last-child {
+            border-bottom: none;
+        }
+
+        #battle-section {
+            display: none;
+            background-color: rgba(44, 62, 80, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            width: 95%;
+            max-width: 900px;
+            text-align: center;
+            margin: 20px auto;
+            border: 3px solid #e74c3c;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #enemy-display {
+            margin-bottom: 25px;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e74c3c;
+        }
+
+        #enemy-sprite {
+            font-size: 5em;
+            margin-bottom: 10px;
+            filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.5));
+        }
+
+        #enemy-name {
+            font-size: 2em;
+            color: #e74c3c;
+            text-shadow: 1px 1px #c0392b;
+        }
+
+        #enemy-hp-bar-container {
+            background-color: #c0392b;
+            border-radius: 8px;
+            height: 20px;
+            width: 90%;
+            margin: 15px auto;
+            overflow: hidden;
+            border: 1px solid #e74c3c;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        #enemy-hp-bar {
+            background-color: #2ecc71;
+            height: 100%;
+            width: 100%;
+            transition: width 0.5s ease-in-out;
+            border-radius: 8px;
+        }
+
+        #battle-choices {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        #map-container {
+            display: none;
+            background-color: rgba(44, 62, 80, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            width: 95%;
+            max-width: 900px;
+            text-align: center;
+            margin: 20px auto;
+            border: 3px solid #f39c12;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #game-map {
+            display: grid;
+            border: 2px solid #f39c12;
+            margin: 25px auto;
+            background-color: #34495e;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .map-tile {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            border: 1px solid rgba(236, 240, 241, 0.1);
+            box-sizing: border-box;
+            transition: background-color 0.2s ease;
+            text-shadow: 1px 1px #2c3e50;
+        }
+
+        .map-tile.player {
+            background-color: #f1c40f;
+            border: 3px solid #e67e22;
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.8);
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        .map-tile.grass {
+            background-color: #27ae60;
+        }
+
+        .map-tile.forest {
+            background-color: #2ecc71;
+        }
+
+        .map-tile.village {
+            background-color: #f39c12;
+        }
+
+        .map-tile.mountain {
+            background-color: #7f8c8d;
+            border: 2px solid #e74c3c; /* Obstacle border */
+            position: relative;
+        }
+
+        .map-tile.mountain::after {
+            content: '▲';
+            position: absolute;
+            color: #bdc3c7;
+            font-size: 1.2em;
+        }
+
+        .map-tile.water {
+            background-color: #3498db;
+            border: 2px solid #e74c3c; /* Obstacle border */
+            position: relative;
+        }
+
+        .map-tile.water::after {
+            content: '~';
+            position: absolute;
+            color: #ecf0f1;
+            font-size: 1.5em;
+        }
+
+        .map-tile.town {
+            background-color: #e67e22;
+        }
+
+        .map-tile.dungeon {
+            background-color: #9b59b6;
+        }
+
+        #map-controls {
+            margin-top: 20px;
+        }
+
+        #map-controls button {
+            background-color: #95a5a6;
+            color: white;
+            border: 2px solid #7f8c8d;
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 8px;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px #2c3e50;
+            box-shadow: 2px 2px #2c3e50;
+        }
+
+        #map-controls button:hover {
+            background-color: #7f8c8d;
+            transform: translateY(-2px);
+            box-shadow: 4px 4px #2c3e50;
+        }
+
+        #player-image-container {
+            margin-top: 25px;
+            margin-bottom: 25px;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        #player-image {
+            width: 180px;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 50%;
+            border: 4px solid #f1c40f;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.8);
+        }
+
+        #companion-image-container {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #2ecc71;
+        }
+
+        .companion-image {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            border-radius: 50%;
+            border: 3px solid #2ecc71;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+            transition: transform 0.2s ease;
+        }
+
+        .companion-image:hover {
+            transform: scale(1.1);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #game-container, #battle-section, #map-container {
+                padding: 15px;
+                width: 98%;
+            }
+
+            #story-title {
+                font-size: 2em;
+            }
+
+            #story-text {
+                font-size: 1em;
+            }
+
+            .choice-button {
+                padding: 12px 15px;
+                font-size: 0.9em;
+            }
+
+            .map-tile {
+                width: 25px;
+                height: 25px;
+                font-size: 1em;
+            }
+
+            #player-image {
+                width: 120px;
+                height: 120px;
+            }
+
+            .companion-image {
+                width: 70px;
+                height: 70px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #story-title {
+                font-size: 1.8em;
+            }
+
+            #choices {
+                grid-template-columns: 1fr;
+            }
+
+            .map-tile {
+                width: 20px;
+                height: 20px;
+                font-size: 0.8em;
+            }
+        }
 
     <script>
         // 游戏状态
@@ -361,8 +1164,16 @@
                 x: 10,
                 y: 10,
                 inventory: [
-                    { id: 'hp_potion', name: '生命药水', type: 'consumable', effect: 'heal', value: 50, count: 2 },
-                    { id: 'mp_potion', name: '魔法药水', type: 'consumable', effect: 'mana', value: 30, count: 1 }
+                    { id: 'potion', name: '治疗药水', type: 'consumable', effect: { hp: 30 }, price: 50, description: '恢复30点生命值', dropRate: 0.4 },
+                    { id: 'super_potion', name: '高级治疗药水', type: 'consumable', effect: { hp: 80 }, price: 150, description: '恢复80点生命值', dropRate: 0.15 },
+                    { id: 'attack_amulet', name: '攻击护符', type: 'accessory', attack: 5, price: 200, description: '增加5点攻击力', dropRate: 0.1 },
+                    { id: 'defense_ring', name: '防御戒指', type: 'accessory', defense: 3, price: 180, description: '增加3点防御力', dropRate: 0.1 },
+                    { id: 'mana_potion', name: '魔法药水', type: 'consumable', effect: { mp: 50 }, price: 70, description: '恢复50点魔法值', dropRate: 0.3 },
+                    { id: 'sword', name: '铁剑', type: 'weapon', attack: 10, price: 100, description: '一把普通的铁剑', dropRate: 0.05 },
+                    { id: 'shield', name: '木盾', type: 'armor', defense: 5, price: 80, description: '一个普通的木盾', dropRate: 0.05 },
+                    { id: 'leather_armor', name: '皮甲', type: 'armor', defense: 8, price: 120, description: '一套轻便的皮甲', dropRate: 0.03 },
+                    { id: 'iron_sword', name: '铁剑', type: 'weapon', attack: 15, price: 250, description: '一把锋利的铁剑', dropRate: 0.03 },
+                    { id: 'gold_bar', name: '金条', type: 'valuable', price: 500, description: '一块闪闪发光的金条', dropRate: 0.01 }
                 ],
                 equipment: {
                     weapon: { id: 'starter_staff', name: '新手法杖', attack: 10 },
@@ -373,14 +1184,38 @@
             currentScene: 'intro',
             gameMode: 'story',
             enemy: null,
-            gameMap: null,
-            shopItems: [
-                { id: 'hp_potion', name: '生命药水', type: 'consumable', effect: 'heal', value: 50, price: 20, description: '恢复50点生命值' },
-                { id: 'mp_potion', name: '魔法药水', type: 'consumable', effect: 'mana', value: 30, price: 30, description: '恢复30点魔法值' },
+            gameMap: null,            shopItems: [
+                { id: 'healing_potion', name: '治疗药水', type: 'consumable', effect: 'heal', value: 30, price: 50, description: '恢复30点生命值' },
+                { id: 'mana_potion', name: '魔法药水', type: 'consumable', effect: 'mana', value: 20, price: 40, description: '恢复20点魔法值' },
                 { id: 'iron_sword', name: '铁剑', type: 'weapon', attack: 20, price: 100, description: '攻击力+20的铁制武器' },
                 { id: 'leather_armor', name: '皮甲', type: 'armor', defense: 10, price: 80, description: '防御力+10的皮制护甲' },
                 { id: 'magic_ring', name: '魔法戒指', type: 'accessory', mp: 20, price: 150, description: '增加20点最大魔法值' },
-                { id: 'strength_potion', name: '力量药水', type: 'consumable', effect: 'buff', value: 10, price: 50, description: '临时增加10点攻击力' }
+                { id: 'strength_potion', name: '力量药水', type: 'consumable', effect: 'buff', value: 10, price: 50, description: '临时增加10点攻击力' },
+                { id: 'steel_sword', name: '钢剑', type: 'weapon', attack: 35, price: 250, description: '攻击力+35的钢制武器' },
+                { id: 'plate_armor', name: '板甲', type: 'armor', defense: 25, price: 200, description: '防御力+25的重型板甲' },
+                { id: 'wisdom_amulet', name: '智慧护符', type: 'accessory', mp: 30, price: 300, description: '增加30点最大魔法值' },
+                { id: 'elixir', name: '万能药', type: 'consumable', effect: 'full_heal', value: 999, price: 500, description: '完全恢复生命值和魔法值' }
+            ],
+            // 掉落物品
+            dropItems: [
+                { id: 'healing_potion', name: '治疗药水', type: 'consumable', effect: 'heal', value: 30, price: 50, description: '恢复30点生命值', dropRate: 0.3 },
+                { id: 'mana_potion', name: '魔法药水', type: 'consumable', effect: 'mana', value: 20, price: 40, description: '恢复20点魔法值', dropRate: 0.2 },
+                { id: 'gold_bag', name: '金币袋', type: 'consumable', effect: 'gold', value: 50, price: 0, description: '获得50金币', dropRate: 0.4 },
+                { id: 'rusty_sword', name: '生锈的剑', type: 'weapon', attack: 5, price: 20, description: '攻击力+5的生锈武器', dropRate: 0.1 },
+                { id: 'old_boots', name: '旧靴子', type: 'armor', defense: 2, price: 10, description: '防御力+2的旧靴子', dropRate: 0.1 }
+            ],    { id: 'strength_potion', name: '力量药水', type: 'consumable', effect: 'buff', value: 10, price: 50, description: '临时增加10点攻击力' },
+                { id: 'steel_sword', name: '钢剑', type: 'weapon', attack: 35, price: 250, description: '攻击力+35的钢制武器' },
+                { id: 'plate_armor', name: '板甲', type: 'armor', defense: 25, price: 200, description: '防御力+25的重型板甲' },
+                { id: 'wisdom_amulet', name: '智慧护符', type: 'accessory', mp: 30, price: 300, description: '增加30点最大魔法值' },
+                { id: 'elixir', name: '万能药', type: 'consumable', effect: 'full_heal', value: 999, price: 500, description: '完全恢复生命值和魔法值' }
+            ],
+            // 掉落物品
+            dropItems: [
+                { id: 'healing_potion', name: '治疗药水', type: 'consumable', effect: 'heal', value: 30, price: 50, description: '恢复30点生命值', dropRate: 0.3 },
+                { id: 'mana_potion', name: '魔法药水', type: 'consumable', effect: 'mana', value: 20, price: 40, description: '恢复20点魔法值', dropRate: 0.2 },
+                { id: 'gold_bag', name: '金币袋', type: 'consumable', effect: 'gold', value: 50, price: 0, description: '获得50金币', dropRate: 0.4 },
+                { id: 'rusty_sword', name: '生锈的剑', type: 'weapon', attack: 5, price: 20, description: '攻击力+5的生锈武器', dropRate: 0.1 },
+                { id: 'old_boots', name: '旧靴子', type: 'armor', defense: 2, price: 10, description: '防御力+2的旧靴子', dropRate: 0.1 }
             ],
             // 客栈系统
             inn: {
@@ -1168,6 +2003,20 @@
                 }
                 
                 addLog(`🏆 战斗胜利！获得${expGain}经验值和${goldGain}金币`);
+
+                // 物品掉落
+                gameState.dropItems.forEach(dropItem => {
+                    if (Math.random() < dropItem.dropRate) {
+                        // 如果是金币袋，直接增加金币
+                        if (dropItem.id === 'gold_bag') {
+                            gameState.player.gold += dropItem.value;
+                            addLog(`🎉 掉落了${dropItem.value}金币！`);
+                        } else {
+                            gameState.player.inventory.push(dropItem);
+                            addLog(`🎉 掉落了${dropItem.name}！`);
+                        }
+                    }
+                });
                 endBattle(true);
                 return;
             }
