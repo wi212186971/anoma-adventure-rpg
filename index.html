@@ -315,7 +315,8 @@
                 <button onclick="closeMap()">❌ 关闭地图</button>
             </div>
             <p style="text-align: center; margin-top: 15px; color: #cccccc;">
-                当前位置: (<span id="player-x">10</span>, <span id="player-y">10</span>)
+                当前位置: (<span id="player-x">10</span>, <span id="player-y">10</span>)<br>
+                <small>🔴边框 = 不可通行 | 森林遇敌率35% | 草地遇敌率15%</small>
             </p>
         </div>
         
@@ -379,58 +380,97 @@
                         type: 'grass',
                         discovered: false,
                         hasEvent: false,
-                        eventType: null
+                        eventType: null,
+                        passable: true
                     };
                 }
             }
             
             // 村庄 (起始点)
-            map[10][10] = { type: 'village', discovered: true, hasEvent: false, eventType: null };
+            map[10][10] = { type: 'village', discovered: true, hasEvent: false, eventType: null, passable: true };
             
-            // 森林区域
+            // 森林区域 (可通行，有遇敌概率)
             for (let y = 5; y < 15; y++) {
                 for (let x = 5; x < 8; x++) {
                     if (Math.random() > 0.3) {
                         map[y][x] = { 
                             type: 'forest', 
                             discovered: false, 
-                            hasEvent: Math.random() > 0.7, 
-                            eventType: Math.random() > 0.5 ? 'monster' : 'treasure' 
+                            hasEvent: false, 
+                            eventType: null,
+                            passable: true
                         };
                     }
                 }
             }
             
-            // 山脉
+            // 山脉 (不可通行)
             for (let y = 2; y < 6; y++) {
                 for (let x = 12; x < 18; x++) {
                     if (Math.random() > 0.4) {
                         map[y][x] = { 
                             type: 'mountain', 
                             discovered: false, 
-                            hasEvent: Math.random() > 0.8, 
-                            eventType: 'monster' 
+                            hasEvent: false, 
+                            eventType: null,
+                            passable: false
                         };
                     }
                 }
             }
             
-            // 湖泊
+            // 湖泊 (不可通行)
             for (let y = 15; y < 19; y++) {
                 for (let x = 13; x < 17; x++) {
                     if (Math.random() > 0.5) {
-                        map[y][x] = { type: 'water', discovered: false, hasEvent: false, eventType: null };
+                        map[y][x] = { 
+                            type: 'water', 
+                            discovered: false, 
+                            hasEvent: false, 
+                            eventType: null,
+                            passable: false
+                        };
                     }
                 }
             }
             
-            // 洞穴入口
-            map[3][15] = { type: 'cave', discovered: false, hasEvent: true, eventType: 'dungeon' };
-            map[16][6] = { type: 'cave', discovered: false, hasEvent: true, eventType: 'dungeon' };
+            // 洞穴入口 (可通行，有特殊事件)
+            map[3][15] = { type: 'cave', discovered: false, hasEvent: true, eventType: 'dungeon', passable: true };
+            map[16][6] = { type: 'cave', discovered: false, hasEvent: true, eventType: 'dungeon', passable: true };
             
-            // 其他城镇
-            map[5][5] = { type: 'town', discovered: false, hasEvent: true, eventType: 'shop' };
-            map[15][15] = { type: 'town', discovered: false, hasEvent: true, eventType: 'shop' };
+            // 其他城镇 (可通行)
+            map[5][5] = { type: 'town', discovered: false, hasEvent: true, eventType: 'shop', passable: true };
+            map[15][15] = { type: 'town', discovered: false, hasEvent: true, eventType: 'shop', passable: true };
+            
+            // 添加更多山脉障碍
+            for (let i = 0; i < 15; i++) {
+                const x = Math.floor(Math.random() * mapSize);
+                const y = Math.floor(Math.random() * mapSize);
+                if (map[y][x].type === 'grass' && !(x === 10 && y === 10)) {
+                    map[y][x] = {
+                        type: 'mountain',
+                        discovered: false,
+                        hasEvent: false,
+                        eventType: null,
+                        passable: false
+                    };
+                }
+            }
+            
+            // 添加更多水域障碍
+            for (let i = 0; i < 10; i++) {
+                const x = Math.floor(Math.random() * mapSize);
+                const y = Math.floor(Math.random() * mapSize);
+                if (map[y][x].type === 'grass' && !(x === 10 && y === 10)) {
+                    map[y][x] = {
+                        type: 'water',
+                        discovered: false,
+                        hasEvent: false,
+                        eventType: null,
+                        passable: false
+                    };
+                }
+            }
             
             gameState.gameMap = map;
         }
@@ -525,16 +565,19 @@
                     break;
                     
                 case 'forest_deep':
-                    if (Math.random() > 0.5) {
+                    // 踩雷式遇敌机制
+                    if (Math.random() > 0.4) { // 60%概率遇敌
                         startBattle();
+                        addLog('🌲 在森林深处遭遇了敌人！');
                     } else {
                         document.getElementById('story-title').textContent = '意外发现';
-                        document.getElementById('story-text').textContent = '在森林深处，你发现了一个闪闪发光的宝箱。当你打开它时，里面装满了金币和一瓶神秘的药水。';
+                        document.getElementById('story-text').textContent = '在森林深处，你发现了一个闪闪发光的宝箱。当你打开它时，里面装满了金币和一瓶神秘的药水。这片森林似乎充满了意图能量的波动...';
                         const goldFound = Math.floor(Math.random() * 50) + 20;
                         gameState.player.gold += goldFound;
                         updateChoices([
-                            { text: '继续探索', action: 'forest_deep' },
-                            { text: '返回村庄', action: 'village_center' }
+                            { text: '继续深入探索', action: 'forest_deep' },
+                            { text: '返回村庄', action: 'village_center' },
+                            { text: '打开世界地图', action: 'map' }
                         ]);
                         addLog(`💰 发现宝箱，获得了${goldFound}金币！`);
                         updatePlayerStats();
@@ -641,6 +684,11 @@
                     } else if (tile.discovered) {
                         cell.className += ` ${tile.type}`;
                         cell.textContent = getTerrainIcon(tile.type);
+                        // 为不可通行区域添加边框提示
+                        if (!tile.passable) {
+                            cell.style.border = '2px solid #ff4444';
+                            cell.style.opacity = '0.8';
+                        }
                     } else {
                         cell.className += ' undiscovered';
                         cell.textContent = '❓';
@@ -659,6 +707,13 @@
             const newX = Math.max(0, Math.min(mapSize - 1, gameState.player.x + dx));
             const newY = Math.max(0, Math.min(mapSize - 1, gameState.player.y + dy));
             
+            // 检查目标位置是否可通行
+            const targetTile = gameState.gameMap[newY][newX];
+            if (!targetTile.passable) {
+                addLog(`❌ 无法通过${getTerrainName(targetTile.type)}！`);
+                return;
+            }
+            
             if (newX !== gameState.player.x || newY !== gameState.player.y) {
                 gameState.player.x = newX;
                 gameState.player.y = newY;
@@ -670,15 +725,51 @@
                     }
                 }
                 
-                // 检查事件
-                const currentTile = gameState.gameMap[newY][newX];
-                if (currentTile.hasEvent && currentTile.eventType) {
-                    handleMapEvent(currentTile.eventType, newX, newY);
+                // 踩雷式遇敌机制
+                const encounterChance = getEncounterChance(targetTile.type);
+                if (Math.random() < encounterChance) {
+                    closeMap();
+                    startBattle();
+                    addLog(`⚔️ 在${getTerrainName(targetTile.type)}中遭遇了敌人！`);
+                    return;
+                }
+                
+                // 检查特殊事件
+                if (targetTile.hasEvent && targetTile.eventType) {
+                    handleMapEvent(targetTile.eventType, newX, newY);
                 }
                 
                 renderMap();
-                addLog(`🚶‍♂️ 移动到 (${newX}, ${newY})`);
+                addLog(`🚶‍♂️ 移动到${getTerrainName(targetTile.type)} (${newX}, ${newY})`);
             }
+        }
+        
+        // 获取地形名称
+        function getTerrainName(type) {
+            const names = {
+                'village': '村庄',
+                'town': '城镇',
+                'forest': '森林',
+                'mountain': '山脉',
+                'water': '湖泊',
+                'cave': '洞穴',
+                'grass': '草地'
+            };
+            return names[type] || '未知地形';
+        }
+        
+        // 获取遇敌概率
+        function getEncounterChance(terrainType) {
+            const encounterRates = {
+                'grass': 0.15,      // 草地：15%遇敌率
+                'forest': 0.35,     // 森林：35%遇敌率
+                'mountain': 0.25,   // 山脉：25%遇敌率（虽然不可通行，但用于参考）
+                'cave': 0.50,       // 洞穴：50%遇敌率
+                'village': 0.0,     // 村庄：0%遇敌率
+                'town': 0.0,        // 城镇：0%遇敌率
+                'water': 0.0        // 水域：0%遇敌率（不可通行）
+            };
+            return encounterRates[terrainType] || 0.1;
         }
         
         // 处理地图事件
