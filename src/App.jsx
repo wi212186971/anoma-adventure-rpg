@@ -7,6 +7,7 @@ import { Sword, Shield, Heart, Zap, Map, Package, Settings, Save } from 'lucide-
 import BattleSystem from './components/BattleSystem.jsx'
 import InventorySystem from './components/InventorySystem.jsx'
 import ShopSystem from './components/ShopSystem.jsx'
+import MapSystem from './components/MapSystem.jsx'
 import './App.css'
 
 // 导入图片资源
@@ -68,7 +69,8 @@ const scenes = {
       { text: '前往村长家接受第一个任务', action: 'village_chief' },
       { text: '探索村庄周围的森林', action: 'forest_entrance' },
       { text: '查看个人状态和装备', action: 'character_status' },
-      { text: '前往商店购买物品', action: 'shop' }
+      { text: '前往商店购买物品', action: 'shop' },
+      { text: '打开世界地图', action: 'open_map' }
     ]
   },
   village_chief: {
@@ -121,7 +123,7 @@ const scenes = {
 function App() {
   const [gameState, setGameState] = useState(initialGameState)
   const [currentScene, setCurrentScene] = useState(scenes.intro)
-  const [gameMode, setGameMode] = useState('story') // 'story', 'battle', 'inventory', 'shop'
+  const [gameMode, setGameMode] = useState('story') // 'story', 'battle', 'inventory', 'shop', 'map'
 
   // 添加日志消息
   const addLog = (message) => {
@@ -162,6 +164,10 @@ function App() {
         setGameMode('shop')
         addLog('你进入了商店')
         break
+      case 'open_map':
+        setGameMode('map')
+        addLog('你打开了世界地图')
+        break
       case 'forest_deep':
         // 随机遭遇战斗
         if (Math.random() > 0.5) {
@@ -199,7 +205,33 @@ function App() {
     }
   }
 
-  // 战斗结束处理
+  // 处理地图事件
+  const handleMapEvent = (eventType, position) => {
+    switch (eventType) {
+      case 'battle':
+        setGameMode('battle')
+        addLog(`在 (${position.x}, ${position.y}) 遭遇了敌人！`)
+        break
+      case 'treasure':
+        const treasureGold = Math.floor(Math.random() * 50) + 10
+        updatePlayer(prev => ({
+          ...prev,
+          gold: prev.gold + treasureGold
+        }))
+        addLog(`发现了宝箱！获得了 ${treasureGold} 金币`)
+        break
+      case 'dungeon':
+        addLog(`发现了地下城入口！这里充满了危险...`)
+        setGameMode('battle')
+        break
+      case 'shop':
+        setGameMode('shop')
+        addLog(`进入了城镇商店`)
+        break
+    }
+  }
+
+  // 处理战斗结束
   const handleBattleEnd = (result) => {
     setGameMode('story')
     if (result === 'victory') {
@@ -418,6 +450,15 @@ function App() {
                 player={gameState.player}
                 onPlayerUpdate={updatePlayer}
                 onClose={() => setGameMode('story')}
+              />
+            )}
+
+            {gameMode === 'map' && (
+              <MapSystem
+                player={gameState.player}
+                onPlayerUpdate={updatePlayer}
+                onClose={() => setGameMode('story')}
+                onMapEvent={handleMapEvent}
               />
             )}
 
