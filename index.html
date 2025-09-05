@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anoma RPG - 意图之境</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid #ffd700;
+        }
+        
+        .game-title {
+            text-align: center;
+            font-size: 2.5em;
+            color: #ffd700;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 10px;
+            border: 1px solid #ffd700;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #cccccc;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd700);
+            transition: width 0.3s ease;
+        }
+        
+        .story-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #ffd700;
+        }
+        
+        .story-title {
+            font-size: 1.5em;
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+        
+        .story-text {
+            line-height: 1.8;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        
+        .character-image {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .character-image img {
+            max-width: 200px;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+        }
+        
+        .choices {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .choice-btn {
+            background: linear-gradient(135deg, #4a5568, #2d3748);
+            border: 2px solid #ffd700;
+            color: #ffffff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        
+        .choice-btn:hover {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+        
+        .map-container {
+            display: none;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .map-cell {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 1.2em;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .grass { background: #4a7c59; }
+        .forest { background: #2d5016; }
+        .mountain { background: #8b7355; }
+        .water { background: #4682b4; }
+        .village { background: #ffd700; }
+        .town { background: #87ceeb; }
+        .cave { background: #483d8b; }
+        .player { background: #ff4500 !important; }
+        .undiscovered { background: #333333; }
+        
+        .map-controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .map-controls button {
+            background: #4a5568;
+            border: 1px solid #ffd700;
+            color: white;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .map-controls button:hover {
+            background: #ffd700;
+            color: black;
+        }
+        
+        .game-log {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ffd700;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 3px solid #ffd700;
+            padding-left: 10px;
+        }
+        
+        .battle-section {
+            display: none;
+            background: rgba(139, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ff4500;
+        }
+        
+        .enemy-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .battle-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .battle-btn {
+            background: #8b0000;
+            border: 1px solid #ff4500;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        
+        .battle-btn:hover {
+            background: #ff4500;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="game-title">🧙‍♂️ Anoma RPG - 意图之境 🌟</h1>
+        
+        <!-- 玩家状态 -->
+        <div class="player-stats">
+            <div class="stat">
+                <div class="stat-label">等级</div>
+                <div class="stat-value" id="player-level">1</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">生命值</div>
+                <div class="stat-value" id="player-hp">100/100</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="hp-bar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">魔法值</div>
+                <div class="stat-value" id="player-mp">50/50</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="mp-bar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">经验值</div>
+                <div class="stat-value" id="player-exp">0/100</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="exp-bar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">金币</div>
+                <div class="stat-value" id="player-gold">100</div>
+            </div>
+        </div>
+        
+        <!-- 故事区域 -->
+        <div class="story-section" id="story-section">
+            <h2 class="story-title" id="story-title">意图觉醒</h2>
+            <div class="story-text" id="story-text">
+                在Anoma的神秘世界中，你是一名刚刚觉醒意图能力的年轻法师。这个世界由无数个"意图"构成，每个意图都是现实的一个片段，而你拥有操控这些意图的天赋。
+                
+                你站在新手村的中央，周围是熟悉的茅草屋和石板路。远处的地平线上，神秘的意图之塔若隐若现，那里据说隐藏着Anoma世界的终极秘密。
+                
+                你的导师告诉你，只有通过不断的冒险和战斗，才能提升你的意图操控能力，最终成为真正的意图大师。
+            </div>
+            <div class="character-image">
+                🧙‍♂️
+            </div>
+        </div>
+        
+        <!-- 选择区域 -->
+        <div class="choices" id="choices">
+            <button class="choice-btn" onclick="makeChoice('village_chief')">🏠 前往村长家接受第一个任务</button>
+            <button class="choice-btn" onclick="makeChoice('forest')">🌲 探索村庄周围的森林</button>
+            <button class="choice-btn" onclick="makeChoice('status')">📊 查看个人状态和装备</button>
+            <button class="choice-btn" onclick="makeChoice('shop')">🏪 前往商店购买物品</button>
+            <button class="choice-btn" onclick="makeChoice('map')">🗺️ 打开世界地图</button>
+        </div>
+        
+        <!-- 地图区域 -->
+        <div class="map-container" id="map-container">
+            <h3 style="text-align: center; color: #ffd700; margin-bottom: 20px;">🗺️ 意图世界地图</h3>
+            <div class="map-grid" id="map-grid"></div>
+            <div class="map-controls">
+                <button onclick="movePlayer(-1, 0)">⬅️ 西</button>
+                <button onclick="movePlayer(0, -1)">⬆️ 北</button>
+                <button onclick="movePlayer(0, 1)">⬇️ 南</button>
+                <button onclick="movePlayer(1, 0)">➡️ 东</button>
+                <button onclick="closeMap()">❌ 关闭地图</button>
+            </div>
+            <p style="text-align: center; margin-top: 15px; color: #cccccc;">
+                当前位置: (<span id="player-x">10</span>, <span id="player-y">10</span>)
+            </p>
+        </div>
+        
+        <!-- 战斗区域 -->
+        <div class="battle-section" id="battle-section">
+            <h3 style="text-align: center; color: #ff4500; margin-bottom: 20px;">⚔️ 战斗模式</h3>
+            <div class="enemy-info">
+                <div style="font-size: 3em; margin-bottom: 10px;" id="enemy-sprite">👹</div>
+                <div style="font-size: 1.2em; margin-bottom: 5px;" id="enemy-name">森林哥布林</div>
+                <div id="enemy-hp">HP: 60/60</div>
+                <div class="progress-bar" style="margin: 10px auto; width: 200px;">
+                    <div class="progress-fill" id="enemy-hp-bar" style="width: 100%; background: #ff4500;"></div>
+                </div>
+            </div>
+            <div class="battle-actions">
+                <button class="battle-btn" onclick="battleAction('attack')">⚔️ 攻击</button>
+                <button class="battle-btn" onclick="battleAction('magic')">✨ 魔法</button>
+                <button class="battle-btn" onclick="battleAction('defend')">🛡️ 防御</button>
+                <button class="battle-btn" onclick="battleAction('escape')">🏃 逃跑</button>
+            </div>
+        </div>
+        
+        <!-- 游戏日志 -->
+        <div class="game-log" id="game-log">
+            <div class="log-entry">🎮 欢迎来到Anoma RPG - 意图之境！</div>
+            <div class="log-entry">🧙‍♂️ 你的冒险即将开始...</div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let gameState = {
+            player: {
+                level: 1,
+                hp: 100,
+                maxHp: 100,
+                mp: 50,
+                maxMp: 50,
+                exp: 0,
+                maxExp: 100,
+                gold: 100,
+                x: 10,
+                y: 10
+            },
+            currentScene: 'intro',
+            gameMode: 'story',
+            enemy: null,
+            gameMap: null
+        };
+        
+        // 地图数据
+        const mapSize = 20;
+        
+        // 初始化地图
+        function initializeMap() {
+            const map = [];
+            for (let y = 0; y < mapSize; y++) {
+                map[y] = [];
+                for (let x = 0; x < mapSize; x++) {
+                    map[y][x] = {
+                        type: 'grass',
+                        discovered: false,
+                        hasEvent: false,
+                        eventType: null
+                    };
+                }
+            }
+            
+            // 村庄 (起始点)
+            map[10][10] = { type: 'village', discovered: true, hasEvent: false, eventType: null };
+            
+            // 森林区域
+            for (let y = 5; y < 15; y++) {
+                for (let x = 5; x < 8; x++) {
+                    if (Math.random() > 0.3) {
+                        map[y][x] = { 
+                            type: 'forest', 
+                            discovered: false, 
+                            hasEvent: Math.random() > 0.7, 
+                            eventType: Math.random() > 0.5 ? 'monster' : 'treasure' 
+                        };
+                    }
+                }
+            }
+            
+            // 山脉
+            for (let y = 2; y < 6; y++) {
+                for (let x = 12; x < 18; x++) {
+                    if (Math.random() > 0.4) {
+                        map[y][x] = { 
+                            type: 'mountain', 
+                            discovered: false, 
+                            hasEvent: Math.random() > 0.8, 
+                            eventType: 'monster' 
+                        };
+                    }
+                }
+            }
+            
+            // 湖泊
+            for (let y = 15; y < 19; y++) {
+                for (let x = 13; x < 17; x++) {
+                    if (Math.random() > 0.5) {
+                        map[y][x] = { type: 'water', discovered: false, hasEvent: false, eventType: null };
+                    }
+                }
+            }
+            
+            // 洞穴入口
+            map[3][15] = { type: 'cave', discovered: false, hasEvent: true, eventType: 'dungeon' };
+            map[16][6] = { type: 'cave', discovered: false, hasEvent: true, eventType: 'dungeon' };
+            
+            // 其他城镇
+            map[5][5] = { type: 'town', discovered: false, hasEvent: true, eventType: 'shop' };
+            map[15][15] = { type: 'town', discovered: false, hasEvent: true, eventType: 'shop' };
+            
+            gameState.gameMap = map;
+        }
+        
+        // 地形图标映射
+        function getTerrainIcon(type) {
+            const icons = {
+                'village': '🏘️',
+                'town': '🏛️',
+                'forest': '🌲',
+                'mountain': '⛰️',
+                'water': '🌊',
+                'cave': '🕳️',
+                'grass': '🌱'
+            };
+            return icons[type] || '🌱';
+        }
+        
+        // 更新玩家状态显示
+        function updatePlayerStats() {
+            document.getElementById('player-level').textContent = gameState.player.level;
+            document.getElementById('player-hp').textContent = `${gameState.player.hp}/${gameState.player.maxHp}`;
+            document.getElementById('player-mp').textContent = `${gameState.player.mp}/${gameState.player.maxMp}`;
+            document.getElementById('player-exp').textContent = `${gameState.player.exp}/${gameState.player.maxExp}`;
+            document.getElementById('player-gold').textContent = gameState.player.gold;
+            
+            // 更新进度条
+            document.getElementById('hp-bar').style.width = `${(gameState.player.hp / gameState.player.maxHp) * 100}%`;
+            document.getElementById('mp-bar').style.width = `${(gameState.player.mp / gameState.player.maxMp) * 100}%`;
+            document.getElementById('exp-bar').style.width = `${(gameState.player.exp / gameState.player.maxExp) * 100}%`;
+        }
+        
+        // 添加日志
+        function addLog(message) {
+            const logContainer = document.getElementById('game-log');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = message;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        // 处理选择
+        function makeChoice(choice) {
+            switch (choice) {
+                case 'village_chief':
+                    document.getElementById('story-title').textContent = '村长的委托';
+                    document.getElementById('story-text').textContent = '村长是一位慈祥的老人，他的眼中闪烁着智慧的光芒。当你走进他的房间时，他正在研究一张古老的地图。"年轻的意图法师，"他说道，"我们村庄附近出现了一些奇怪的现象。森林中的意图流动变得不稳定，一些原本温和的生物变得具有攻击性。我需要你去调查这个问题，并且..."他停顿了一下，"寻找传说中的虾虾伙伴。据说它能帮助意图法师更好地理解和操控意图。"';
+                    updateChoices([
+                        { text: '接受任务，前往森林调查', action: 'accept_quest' },
+                        { text: '询问更多关于虾虾伙伴的信息', action: 'ask_shrimp' },
+                        { text: '返回村庄中心', action: 'village_center' }
+                    ]);
+                    addLog('🏠 你与村长交谈，了解了当前的危机');
+                    break;
+                    
+                case 'forest':
+                    document.getElementById('story-title').textContent = '神秘森林';
+                    document.getElementById('story-text').textContent = '你走进了村庄周围的森林。这里的树木高大茂密，阳光透过树叶洒下斑驳的光影。你能感受到空气中弥漫着浓郁的意图能量，但似乎有些不太稳定。突然，你听到了一些奇怪的声音...';
+                    updateChoices([
+                        { text: '深入森林探索', action: 'forest_deep' },
+                        { text: '寻找意图能量的源头', action: 'find_intent' },
+                        { text: '返回村庄', action: 'village_center' }
+                    ]);
+                    addLog('🌲 你进入了神秘的森林');
+                    break;
+                    
+                case 'status':
+                    showStatus();
+                    break;
+                    
+                case 'shop':
+                    showShop();
+                    break;
+                    
+                case 'map':
+                    showMap();
+                    break;
+                    
+                case 'accept_quest':
+                    document.getElementById('story-title').textContent = '任务开始';
+                    document.getElementById('story-text').textContent = '你接受了村长的委托。他给了你一个古老的意图探测器和一些基础的冒险用品。"记住，"村长说道，"意图的力量既可以创造也可以毁灭。学会与它们和谐共处，你就能成为真正的意图大师。现在去吧，愿意图之光指引你的道路。"';
+                    gameState.player.gold += 50;
+                    updateChoices([
+                        { text: '前往森林开始调查', action: 'forest' },
+                        { text: '先去商店购买装备', action: 'shop' },
+                        { text: '查看获得的物品', action: 'status' }
+                    ]);
+                    addLog('✅ 接受了村长的委托任务');
+                    addLog('💰 获得了50金币的任务奖励');
+                    updatePlayerStats();
+                    break;
+                    
+                case 'forest_deep':
+                    if (Math.random() > 0.5) {
+                        startBattle();
+                    } else {
+                        document.getElementById('story-title').textContent = '意外发现';
+                        document.getElementById('story-text').textContent = '在森林深处，你发现了一个闪闪发光的宝箱。当你打开它时，里面装满了金币和一瓶神秘的药水。';
+                        const goldFound = Math.floor(Math.random() * 50) + 20;
+                        gameState.player.gold += goldFound;
+                        updateChoices([
+                            { text: '继续探索', action: 'forest_deep' },
+                            { text: '返回村庄', action: 'village_center' }
+                        ]);
+                        addLog(`💰 发现宝箱，获得了${goldFound}金币！`);
+                        updatePlayerStats();
+                    }
+                    break;
+                    
+                case 'village_center':
+                    document.getElementById('story-title').textContent = '新手村中心';
+                    document.getElementById('story-text').textContent = '你回到了熟悉的村庄中心。这里总是那么宁静祥和，让人感到安心。';
+                    updateChoices([
+                        { text: '前往村长家接受第一个任务', action: 'village_chief' },
+                        { text: '探索村庄周围的森林', action: 'forest' },
+                        { text: '查看个人状态和装备', action: 'status' },
+                        { text: '前往商店购买物品', action: 'shop' },
+                        { text: '打开世界地图', action: 'map' }
+                    ]);
+                    addLog('🏠 返回到了村庄中心');
+                    break;
+            }
+        }
+        
+        // 更新选择按钮
+        function updateChoices(choices) {
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+            choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.textContent = choice.text;
+                button.onclick = () => makeChoice(choice.action);
+                choicesContainer.appendChild(button);
+            });
+        }
+        
+        // 显示状态
+        function showStatus() {
+            document.getElementById('story-title').textContent = '角色状态';
+            document.getElementById('story-text').textContent = `
+                🧙‍♂️ 意图法师
+                等级: ${gameState.player.level}
+                生命值: ${gameState.player.hp}/${gameState.player.maxHp}
+                魔法值: ${gameState.player.mp}/${gameState.player.maxMp}
+                经验值: ${gameState.player.exp}/${gameState.player.maxExp}
+                金币: ${gameState.player.gold}
+                
+                🎒 装备:
+                • 新手法杖 (攻击力: 10)
+                • 布制长袍 (防御力: 5)
+                • 意图探测器 (特殊道具)
+            `;
+            updateChoices([
+                { text: '返回', action: 'village_center' }
+            ]);
+            addLog('📊 查看了角色状态');
+        }
+        
+        // 显示商店
+        function showShop() {
+            document.getElementById('story-title').textContent = '村庄商店';
+            document.getElementById('story-text').textContent = '商店老板是一位友善的中年人，他的店里摆满了各种冒险用品和魔法道具。';
+            updateChoices([
+                { text: '购买生命药水 (20金币)', action: 'buy_hp_potion' },
+                { text: '购买魔法药水 (30金币)', action: 'buy_mp_potion' },
+                { text: '购买铁剑 (100金币)', action: 'buy_sword' },
+                { text: '返回村庄', action: 'village_center' }
+            ]);
+            addLog('🏪 进入了村庄商店');
+        }
+        
+        // 显示地图
+        function showMap() {
+            if (!gameState.gameMap) {
+                initializeMap();
+            }
+            
+            document.getElementById('story-section').style.display = 'none';
+            document.getElementById('choices').style.display = 'none';
+            document.getElementById('map-container').style.display = 'block';
+            
+            renderMap();
+            addLog('🗺️ 打开了世界地图');
+        }
+        
+        // 渲染地图
+        function renderMap() {
+            const mapGrid = document.getElementById('map-grid');
+            mapGrid.innerHTML = '';
+            
+            const viewSize = 10;
+            const startX = Math.max(0, Math.min(mapSize - viewSize, gameState.player.x - 5));
+            const startY = Math.max(0, Math.min(mapSize - viewSize, gameState.player.y - 5));
+            
+            for (let y = startY; y < startY + viewSize; y++) {
+                for (let x = startX; x < startX + viewSize; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'map-cell';
+                    
+                    const tile = gameState.gameMap[y][x];
+                    const isPlayer = x === gameState.player.x && y === gameState.player.y;
+                    
+                    if (isPlayer) {
+                        cell.className += ' player';
+                        cell.textContent = '🧙‍♂️';
+                    } else if (tile.discovered) {
+                        cell.className += ` ${tile.type}`;
+                        cell.textContent = getTerrainIcon(tile.type);
+                    } else {
+                        cell.className += ' undiscovered';
+                        cell.textContent = '❓';
+                    }
+                    
+                    mapGrid.appendChild(cell);
+                }
+            }
+            
+            document.getElementById('player-x').textContent = gameState.player.x;
+            document.getElementById('player-y').textContent = gameState.player.y;
+        }
+        
+        // 移动玩家
+        function movePlayer(dx, dy) {
+            const newX = Math.max(0, Math.min(mapSize - 1, gameState.player.x + dx));
+            const newY = Math.max(0, Math.min(mapSize - 1, gameState.player.y + dy));
+            
+            if (newX !== gameState.player.x || newY !== gameState.player.y) {
+                gameState.player.x = newX;
+                gameState.player.y = newY;
+                
+                // 发现新区域
+                for (let y = Math.max(0, newY - 1); y <= Math.min(mapSize - 1, newY + 1); y++) {
+                    for (let x = Math.max(0, newX - 1); x <= Math.min(mapSize - 1, newX + 1); x++) {
+                        gameState.gameMap[y][x].discovered = true;
+                    }
+                }
+                
+                // 检查事件
+                const currentTile = gameState.gameMap[newY][newX];
+                if (currentTile.hasEvent && currentTile.eventType) {
+                    handleMapEvent(currentTile.eventType, newX, newY);
+                }
+                
+                renderMap();
+                addLog(`🚶‍♂️ 移动到 (${newX}, ${newY})`);
+            }
+        }
+        
+        // 处理地图事件
+        function handleMapEvent(eventType, x, y) {
+            switch (eventType) {
+                case 'monster':
+                    closeMap();
+                    startBattle();
+                    addLog(`⚔️ 在 (${x}, ${y}) 遭遇了敌人！`);
+                    break;
+                case 'treasure':
+                    const treasureGold = Math.floor(Math.random() * 50) + 10;
+                    gameState.player.gold += treasureGold;
+                    updatePlayerStats();
+                    addLog(`💰 发现了宝箱！获得了 ${treasureGold} 金币`);
+                    break;
+                case 'dungeon':
+                    addLog(`🕳️ 发现了地下城入口！这里充满了危险...`);
+                    closeMap();
+                    startBattle();
+                    break;
+                case 'shop':
+                    closeMap();
+                    showShop();
+                    addLog(`🏪 进入了城镇商店`);
+                    break;
+            }
+        }
+        
+        // 关闭地图
+        function closeMap() {
+            document.getElementById('story-section').style.display = 'block';
+            document.getElementById('choices').style.display = 'grid';
+            document.getElementById('map-container').style.display = 'none';
+            makeChoice('village_center');
+        }
+        
+        // 开始战斗
+        function startBattle() {
+            const enemies = [
+                { name: '森林哥布林', sprite: '👹', hp: 60, maxHp: 60, attack: 15 },
+                { name: '野狼', sprite: '🐺', hp: 80, maxHp: 80, attack: 20 },
+                { name: '石头巨人', sprite: '🗿', hp: 120, maxHp: 120, attack: 25 }
+            ];
+            
+            gameState.enemy = enemies[Math.floor(Math.random() * enemies.length)];
+            
+            document.getElementById('story-section').style.display = 'none';
+            document.getElementById('choices').style.display = 'none';
+            document.getElementById('battle-section').style.display = 'block';
+            
+            document.getElementById('enemy-sprite').textContent = gameState.enemy.sprite;
+            document.getElementById('enemy-name').textContent = gameState.enemy.name;
+            updateBattleDisplay();
+            
+            addLog(`⚔️ 战斗开始！遭遇了${gameState.enemy.name}`);
+        }
+        
+        // 更新战斗显示
+        function updateBattleDisplay() {
+            document.getElementById('enemy-hp').textContent = `HP: ${gameState.enemy.hp}/${gameState.enemy.maxHp}`;
+            document.getElementById('enemy-hp-bar').style.width = `${(gameState.enemy.hp / gameState.enemy.maxHp) * 100}%`;
+        }
+        
+        // 战斗行动
+        function battleAction(action) {
+            let playerDamage = 0;
+            let enemyDamage = 0;
+            
+            switch (action) {
+                case 'attack':
+                    playerDamage = Math.floor(Math.random() * 20) + 15;
+                    gameState.enemy.hp -= playerDamage;
+                    addLog(`⚔️ 你攻击了${gameState.enemy.name}，造成${playerDamage}点伤害`);
+                    break;
+                    
+                case 'magic':
+                    if (gameState.player.mp >= 10) {
+                        playerDamage = Math.floor(Math.random() * 30) + 20;
+                        gameState.enemy.hp -= playerDamage;
+                        gameState.player.mp -= 10;
+                        addLog(`✨ 你使用魔法攻击，造成${playerDamage}点伤害`);
+                    } else {
+                        addLog(`❌ 魔法值不足！`);
+                        return;
+                    }
+                    break;
+                    
+                case 'defend':
+                    addLog(`🛡️ 你进入防御姿态`);
+                    enemyDamage = Math.floor(gameState.enemy.attack * 0.5);
+                    break;
+                    
+                case 'escape':
+                    if (Math.random() > 0.3) {
+                        addLog(`🏃 成功逃脱了战斗！`);
+                        endBattle(false);
+                        return;
+                    } else {
+                        addLog(`❌ 逃跑失败！`);
+                    }
+                    break;
+            }
+            
+            // 检查敌人是否死亡
+            if (gameState.enemy.hp <= 0) {
+                const expGain = Math.floor(Math.random() * 30) + 20;
+                const goldGain = Math.floor(Math.random() * 40) + 15;
+                
+                gameState.player.exp += expGain;
+                gameState.player.gold += goldGain;
+                
+                // 检查升级
+                if (gameState.player.exp >= gameState.player.maxExp) {
+                    gameState.player.level++;
+                    gameState.player.exp -= gameState.player.maxExp;
+                    gameState.player.maxExp += 50;
+                    gameState.player.maxHp += 20;
+                    gameState.player.hp = gameState.player.maxHp;
+                    gameState.player.maxMp += 10;
+                    gameState.player.mp = gameState.player.maxMp;
+                    addLog(`🎉 升级了！现在是${gameState.player.level}级`);
+                }
+                
+                addLog(`🏆 战斗胜利！获得${expGain}经验值和${goldGain}金币`);
+                endBattle(true);
+                return;
+            }
+            
+            // 敌人攻击
+            if (action !== 'defend') {
+                enemyDamage = Math.floor(Math.random() * gameState.enemy.attack) + 5;
+            }
+            
+            if (enemyDamage > 0) {
+                gameState.player.hp -= enemyDamage;
+                addLog(`💥 ${gameState.enemy.name}攻击了你，造成${enemyDamage}点伤害`);
+            }
+            
+            // 检查玩家是否死亡
+            if (gameState.player.hp <= 0) {
+                addLog(`💀 你被击败了...`);
+                gameState.player.hp = 1;
+                gameState.player.gold = Math.floor(gameState.player.gold * 0.8);
+                endBattle(false);
+                return;
+            }
+            
+            updateBattleDisplay();
+            updatePlayerStats();
+        }
+        
+        // 结束战斗
+        function endBattle(victory) {
+            document.getElementById('story-section').style.display = 'block';
+            document.getElementById('choices').style.display = 'grid';
+            document.getElementById('battle-section').style.display = 'none';
+            
+            if (victory) {
+                makeChoice('village_center');
+            } else {
+                document.getElementById('story-title').textContent = '战斗结束';
+                document.getElementById('story-text').textContent = '虽然这次没有获得胜利，但你从战斗中学到了宝贵的经验。休息一下，准备下一次的冒险吧。';
+                updateChoices([
+                    { text: '返回村庄休息', action: 'village_center' }
+                ]);
+            }
+            
+            updatePlayerStats();
+        }
+        
+        // 初始化游戏
+        function initGame() {
+            initializeMap();
+            updatePlayerStats();
+            addLog('🎮 游戏初始化完成');
+        }
+        
+        // 页面加载完成后初始化游戏
+        window.onload = function() {
+            initGame();
+        };
+    </script>
+</body>
+</html>
+
